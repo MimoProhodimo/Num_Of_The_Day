@@ -20,7 +20,7 @@
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
     
-        <script>
+           <script>
         const firebaseConfig = {
             apiKey: "AIzaSyAWQTRrHHI0u0zuUrTj5vP0F-T0Dbd8kN8",
             authDomain: "num-of-the-day.firebaseapp.com",
@@ -33,17 +33,22 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
 
-        // 1. Функция просто для отображения данных на экране (чтобы не дублировать код)
+        // Получаем текущую дату в формате YYYY-MM-DD
+        function getCurrentDate() {
+            return new Date().toISOString().split('T')[0];
+        }
+
+        // Функция отображения гонщика на экране
         function displayDriver(driver) {
             document.getElementById('number').textContent = driver.Num || '?';
             document.getElementById('name').textContent = driver.Name || 'Неизвестно';
-            document.getElementById('name').className = 'name'; // Убираем класс загрузки
+            document.getElementById('name').className = 'name';
             document.getElementById('lastname').textContent = driver.LName || '';
             document.getElementById('team').textContent = driver.Team || '';
             document.getElementById('country').textContent = driver.Country || '';
         }
 
-        async function getNewDriver() {
+        async function fetchNewDriver() {
             const nameEl = document.getElementById('name');
             nameEl.textContent = 'Загрузка...';
             nameEl.className = 'name loading';
@@ -53,40 +58,52 @@
                 
                 if (snapshot.empty) {
                     nameEl.textContent = 'База пуста!';
-                    return;
+                    return null;
                 }
                 
                 const drivers = [];
                 snapshot.forEach(doc => drivers.push(doc.data()));
                 const driver = drivers[Math.floor(Math.random() * drivers.length)];
                 
-                localStorage.setItem('savedDriver', JSON.stringify(driver));
-                
-                // Отображаем
-                displayDriver(driver);
+                return driver;
                 
             } catch (error) {
                 console.error('Ошибка:', error);
                 nameEl.textContent = 'Ошибка загрузки';
+                return null;
             }
         }
 
-        // 3. Функция, которая запускается при открытии сайта
+        async function getNewDriver() {
+            const driver = await fetchNewDriver();
+            if (driver) {
+                // Сохраняем гонщика И дату
+                localStorage.setItem('driver_data', JSON.stringify(driver));
+                localStorage.setItem('driver_date', getCurrentDate());
+                displayDriver(driver);
+            }
+        }
+
+        // Инициализация при загрузке страницы
         function initApp() {
-            // Проверяем, есть ли уже сохраненный гонщик в памяти браузера
-            const savedDriverJSON = localStorage.getItem('savedDriver');
+            const savedDriverJSON = localStorage.getItem('driver_data');
+            const savedDate = localStorage.getItem('driver_date');
+            const today = getCurrentDate();
             
-            if (savedDriverJSON) {
-                // Если есть, просто достаем его и показываем (без запроса к Firebase!)
+            if (savedDriverJSON && savedDate === today) {
                 const driver = JSON.parse(savedDriverJSON);
                 displayDriver(driver);
             } else {
-                // Если нет (первый запуск), запрашиваем нового и сохраняем
-                getNewDriver();
+                fetchNewDriver().then(driver => {
+                    if (driver) {
+                        localStorage.setItem('driver_data', JSON.stringify(driver));
+                        localStorage.setItem('driver_date', today);
+                        displayDriver(driver);
+                    }
+                });
             }
         }
 
-        // Запускаем проверку при загрузке страницы
         window.onload = initApp;
     </script>
 
