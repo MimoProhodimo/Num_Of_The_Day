@@ -17,11 +17,10 @@
     
     <button onclick="getRandomDriver()">Новый гонщик</button>
 
-    <!-- Подключаем Firebase через CDN (проще всего) -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
     
-    <script>
+        <script>
         const firebaseConfig = {
             apiKey: "AIzaSyAWQTRrHHI0u0zuUrTj5vP0F-T0Dbd8kN8",
             authDomain: "num-of-the-day.firebaseapp.com",
@@ -31,12 +30,20 @@
             appId: "1:1035941660633:web:6e71187a3d5ccc813a7bc8"
         };
         
-        // Инициализация Firebase
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
 
-        // Функция получения случайного гонщика
-        async function getRandomDriver() {
+        // 1. Функция просто для отображения данных на экране (чтобы не дублировать код)
+        function displayDriver(driver) {
+            document.getElementById('number').textContent = driver.Num || '?';
+            document.getElementById('name').textContent = driver.Name || 'Неизвестно';
+            document.getElementById('name').className = 'name'; // Убираем класс загрузки
+            document.getElementById('lastname').textContent = driver.LName || '';
+            document.getElementById('team').textContent = driver.Team || '';
+            document.getElementById('country').textContent = driver.Country || '';
+        }
+
+        async function getNewDriver() {
             const nameEl = document.getElementById('name');
             nameEl.textContent = 'Загрузка...';
             nameEl.className = 'name loading';
@@ -51,16 +58,12 @@
                 
                 const drivers = [];
                 snapshot.forEach(doc => drivers.push(doc.data()));
-                
                 const driver = drivers[Math.floor(Math.random() * drivers.length)];
                 
-                // Отображаем данные
-                document.getElementById('number').textContent = driver.Num || '?';
-                document.getElementById('name').textContent = driver.Name || 'Неизвестно';
-                document.getElementById('name').className = 'name';
-                document.getElementById('lastname').textContent = driver.LName || '';
-                document.getElementById('team').textContent = driver.Team || '';
-                document.getElementById('country').textContent = driver.Country || '';
+                localStorage.setItem('savedDriver', JSON.stringify(driver));
+                
+                // Отображаем
+                displayDriver(driver);
                 
             } catch (error) {
                 console.error('Ошибка:', error);
@@ -68,8 +71,23 @@
             }
         }
 
-        // Загружаем гонщика при открытии страницы
-        window.onload = getRandomDriver;
+        // 3. Функция, которая запускается при открытии сайта
+        function initApp() {
+            // Проверяем, есть ли уже сохраненный гонщик в памяти браузера
+            const savedDriverJSON = localStorage.getItem('savedDriver');
+            
+            if (savedDriverJSON) {
+                // Если есть, просто достаем его и показываем (без запроса к Firebase!)
+                const driver = JSON.parse(savedDriverJSON);
+                displayDriver(driver);
+            } else {
+                // Если нет (первый запуск), запрашиваем нового и сохраняем
+                getNewDriver();
+            }
+        }
+
+        // Запускаем проверку при загрузке страницы
+        window.onload = initApp;
     </script>
 
 </body>
