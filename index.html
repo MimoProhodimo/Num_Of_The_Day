@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Num of the Day</title>
+    <style>
+        /* Твоя палитра */
+        body {
+            background-color: #184E77;
+            color: #FFFFFF;
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .label { color: #99D98C; font-size: 24px; margin-bottom: 10px; }
+        .number { color: #52B69A; font-size: 100px; font-weight: bold; }
+        .name { font-size: 32px; font-weight: bold; margin-top: 20px; }
+        .lastname { font-size: 24px; color: #D9ED92; margin-top: 4px; }
+        .team { font-size: 18px; color: #52B69A; font-weight: bold; margin-top: 16px; }
+        .country { font-size: 18px; color: #99D98C; margin-top: 4px; }
+        
+        button {
+            margin-top: 40px;
+            padding: 15px 40px;
+            font-size: 18px;
+            font-weight: bold;
+            background-color: #52B69A;
+            color: #184E77;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+        button:hover { background-color: #3a9a7f; }
+        
+        /* Адаптивность для телефонов */
+        @media (max-width: 600px) {
+            .number { font-size: 80px; }
+            .name { font-size: 24px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="label">Число дня</div>
+    <div class="number" id="number">--</div>
+    <div class="name" id="name">Загрузка...</div>
+    <div class="lastname" id="lastname"></div>
+    <div class="team" id="team"></div>
+    <div class="country" id="country"></div>
+    
+    <button onclick="getRandomDriver()">Новый гонщик</button>
+
+    <!-- Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    
+    <script>
+        // ️ ВСТАВЬ СЮДА СВОЮ КОНФИГУРАЦИЮ FIREBASE
+        // (берётся в консоли Firebase → Project Settings → General → Your apps → Web app)
+        const firebaseConfig = {
+            apiKey: "ВСТАВЬ_СЮДА",
+            authDomain: "ВСТАВЬ_СЮДА",
+            projectId: "ВСТАВЬ_СЮДА",
+            storageBucket: "ВСТАВЬ_СЮДА",
+            messagingSenderId: "ВСТАВЬ_СЮДА",
+            appId: "ВСТАВЬ_СЮДА"
+        };
+        
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        async function getRandomDriver() {
+            document.getElementById('name').textContent = 'Загрузка...';
+            
+            const snapshot = await db.collection('drivers').get();
+            const drivers = [];
+            snapshot.forEach(doc => drivers.push(doc.data()));
+            
+            if (drivers.length === 0) return;
+            
+            const driver = drivers[Math.floor(Math.random() * drivers.length)];
+            
+            document.getElementById('number').textContent = driver.Num || '?';
+            document.getElementById('name').textContent = driver.Name || '';
+            document.getElementById('lastname').textContent = driver.LName || '';
+            document.getElementById('team').textContent = driver.Team || '';
+            document.getElementById('country').textContent = driver.Country || '';
+        }
+
+        // Загрузить при открытии страницы
+        window.onload = getRandomDriver;
+    </script>
+
+</body>
+</html>
