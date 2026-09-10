@@ -1,0 +1,104 @@
+<style>
+        body {
+            background-color: #184E77;
+            color: #FFFFFF;
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            max-width: 500px;
+            margin-bottom: 20px;
+        }
+
+        .nav-btn {
+            background: none;
+            border: none;
+            color: #FFFFFF;
+            font-size: 24px;
+            cursor: pointer;
+            padding: 10px;
+        }
+
+        .month-title {
+            font-size: 24px;
+            font-weight: bold;
+            text-transform: capitalize;
+        }
+
+        .stats {
+            color: #52B69A;
+            font-weight: bold;
+            margin-bottom: 20px;
+            font-size: 18px;
+        }
+
+        .weekdays {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            width: 100%;
+            max-width: 500px;
+            text-align: center;
+            color: #99D98C;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 8px;
+            width: 100%;
+            max-width: 500px;
+        }
+
+        .day-cell {
+            aspect-ratio: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-radius: 50%;
+            font-size: 18px;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: #FFFFFF;
+        }
+
+        .day-cell:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .day-cell.active {
+            background-color: #52B69A;
+            color: #184E77;
+            font-weight: bold;
+        }
+
+        .day-cell.empty {
+            cursor: default;
+        }
+        .day-cell.empty:hover {
+            background-color: transparent;
+        }
+
+        .back-btn {
+            margin-top: 40px;
+            padding: 12px 30px;
+            background-color: #1E6091;
+            color: #FFFFFF;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            text-decoration: none;
+        }
+    </style>
