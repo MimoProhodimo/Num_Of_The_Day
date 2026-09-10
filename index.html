@@ -17,44 +17,58 @@
     
     <button onclick="getRandomDriver()">Новый гонщик</button>
 
-    <!-- Firebase -->
+    <!-- Подключаем Firebase через CDN (проще всего) -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
     
     <script>
-        // ️ ВСТАВЬ СЮДА СВОЮ КОНФИГУРАЦИЮ FIREBASE
-        // (берётся в консоли Firebase → Project Settings → General → Your apps → Web app)
         const firebaseConfig = {
-            apiKey: "ВСТАВЬ_СЮДА",
-            authDomain: "ВСТАВЬ_СЮДА",
-            projectId: "ВСТАВЬ_СЮДА",
-            storageBucket: "ВСТАВЬ_СЮДА",
-            messagingSenderId: "ВСТАВЬ_СЮДА",
-            appId: "ВСТАВЬ_СЮДА"
+            apiKey: "AIzaSyAWQTRrHHI0u0zuUrTj5vP0F-T0Dbd8kN8",
+            authDomain: "num-of-the-day.firebaseapp.com",
+            projectId: "num-of-the-day",
+            storageBucket: "num-of-the-day.appspot.com",
+            messagingSenderId: "1035941660633",
+            appId: "1:1035941660633:web:6e71187a3d5ccc813a7bc8"
         };
         
+        // Инициализация Firebase
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
 
+        // Функция получения случайного гонщика
         async function getRandomDriver() {
-            document.getElementById('name').textContent = 'Загрузка...';
+            const nameEl = document.getElementById('name');
+            nameEl.textContent = 'Загрузка...';
+            nameEl.className = 'name loading';
             
-            const snapshot = await db.collection('drivers').get();
-            const drivers = [];
-            snapshot.forEach(doc => drivers.push(doc.data()));
-            
-            if (drivers.length === 0) return;
-            
-            const driver = drivers[Math.floor(Math.random() * drivers.length)];
-            
-            document.getElementById('number').textContent = driver.Num || '?';
-            document.getElementById('name').textContent = driver.Name || '';
-            document.getElementById('lastname').textContent = driver.LName || '';
-            document.getElementById('team').textContent = driver.Team || '';
-            document.getElementById('country').textContent = driver.Country || '';
+            try {
+                const snapshot = await db.collection('drivers').get();
+                
+                if (snapshot.empty) {
+                    nameEl.textContent = 'База пуста!';
+                    return;
+                }
+                
+                const drivers = [];
+                snapshot.forEach(doc => drivers.push(doc.data()));
+                
+                const driver = drivers[Math.floor(Math.random() * drivers.length)];
+                
+                // Отображаем данные
+                document.getElementById('number').textContent = driver.Num || '?';
+                document.getElementById('name').textContent = driver.Name || 'Неизвестно';
+                document.getElementById('name').className = 'name';
+                document.getElementById('lastname').textContent = driver.LName || '';
+                document.getElementById('team').textContent = driver.Team || '';
+                document.getElementById('country').textContent = driver.Country || '';
+                
+            } catch (error) {
+                console.error('Ошибка:', error);
+                nameEl.textContent = 'Ошибка загрузки';
+            }
         }
 
-        // Загрузить при открытии страницы
+        // Загружаем гонщика при открытии страницы
         window.onload = getRandomDriver;
     </script>
 
