@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Календарь - Num of the Day</title>
+</head>
+<body>
+
+    <div class="header">
+        <button class="nav-btn" onclick="changeMonth(-1)">&#10094;</button>
+        <div class="month-title" id="monthTitle">Сентябрь 2026</div>
+        <button class="nav-btn" onclick="changeMonth(1)">&#10095;</button>
+    </div>
+
+    <div class="stats" id="statsText">0 дн.</div>
+
+    <div class="weekdays">
+        <div>Пн</div><div>Вт</div><div>Ср</div><div>Чт</div><div>Пт</div><div>Сб</div><div>Вс</div>
+    </div>
+
+    <div class="calendar-grid" id="calendarGrid">
+        <!-- Дни генерируются через JS -->
+    </div>
+
+    <a href="index.html" class="back-btn">← Назад к гонщику</a>
+
+    <script>
+        // Загружаем отмеченные дни из памяти (массив строк)
+        let activeDates = new Set(JSON.parse(localStorage.getItem('activeDates') || '[]'));
+        
+        // Текущий отображаемый месяц
+        let displayDate = new Date();
+
+        function renderCalendar() {
+            const grid = document.getElementById('calendarGrid');
+            const title = document.getElementById('monthTitle');
+            const stats = document.getElementById('statsText');
+            
+            grid.innerHTML = ''; // Очищаем сетку
+
+            const year = displayDate.getFullYear();
+            const month = displayDate.getMonth();
+
+            // Название месяца на русском
+            const monthNames = ['Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь', 'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь'];
+            title.textContent = `${monthNames[month]} ${year}`;
+
+            // Первый день месяца
+            const firstDay = new Date(year, month, 1);
+            // Количество дней в месяце
+            const lastDay = new Date(year, month + 1, 0).getDate();
+            
+            let startDayIndex = firstDay.getDay() - 1;
+            if (startDayIndex === -1) startDayIndex = 6;
+
+            let activeCount = 0;
+            const monthPrefix = `${year}-${String(month + 1).padStart(2, '0')}-`;
+
+            for (let i = 0; i < startDayIndex; i++) {
+                const emptyCell = document.createElement('div');
+                emptyCell.className = 'day-cell empty';
+                grid.appendChild(emptyCell);
+            }
+
+            for (let day = 1; day <= lastDay; day++) {
+                const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                const cell = document.createElement('div');
+                cell.className = 'day-cell';
+                cell.textContent = day;
+
+                if (activeDates.has(dateStr)) {
+                    cell.classList.add('active');
+                    activeCount++;
+                }
+
+                // Клик по дню
+                cell.onclick = () => toggleDate(dateStr);
+                grid.appendChild(cell);
+            }
+
+            stats.textContent = `${activeCount} дн.`;
+        }
+
+        function toggleDate(dateStr) {
+            if (activeDates.has(dateStr)) {
+                activeDates.delete(dateStr);
+            } else {
+                activeDates.add(dateStr);
+            }
+            localStorage.setItem('activeDates', JSON.stringify([...activeDates]));
+            renderCalendar();
+        }
+
+        function changeMonth(offset) {
+            displayDate.setMonth(displayDate.getMonth() + offset);
+            renderCalendar();
+        }
+
+        renderCalendar();
+    </script>
+
+</body>
+</html>
