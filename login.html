@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Вход - Num of the Day</title>
+    <link rel="stylesheet" href="main.css">
+    <style>
+        .auth-container {
+            max-width: 400px;
+            width: 90%;
+            margin: 50px auto;
+            background-color: #1E6091;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            text-align: center;
+        }
+        .auth-container h2 { color: #52B69A; margin-bottom: 30px; }
+        .auth-container input {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 15px;
+            background-color: #184E77;
+            border: 1px solid #52B69A;
+            border-radius: 6px;
+            color: #FFFFFF;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+        .auth-container input::placeholder { color: #99D98C; }
+        .auth-btn {
+            width: 100%;
+            padding: 12px;
+            margin-top: 10px;
+            background-color: #52B69A;
+            color: #184E77;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .auth-btn:hover { background-color: #3a9a7f; }
+        .secondary-btn {
+            background-color: transparent;
+            color: #52B69A;
+            border: 1px solid #52B69A;
+        }
+        .secondary-btn:hover { background-color: rgba(82, 182, 154, 0.1); }
+        .error { color: #ff6b6b; margin-top: 10px; min-height: 20px; font-size: 14px; }
+        .switch-link {
+            margin-top: 20px;
+            color: #99D98C;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .switch-link:hover { color: #52B69A; text-decoration: underline; }
+    </style>
+</head>
+<body>
+
+    <div class="auth-container">
+        <h2 id="authTitle">Вход в аккаунт</h2>
+        
+        <input type="email" id="email" placeholder="Email">
+        <input type="password" id="password" placeholder="Пароль (мин. 6 символов)">
+        
+        <button class="auth-btn" onclick="handleAuth(false)" id="mainBtn">Войти</button>
+        <button class="auth-btn secondary-btn" onclick="handleAuth(true)" id="regBtn" style="display:none;">Зарегистрироваться</button>
+        
+        <div class="error" id="errorText"></div>
+        
+        <div class="switch-link" onclick="toggleMode()" id="switchText">
+            Нет аккаунта? Зарегистрироваться
+        </div>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyAWQTRrHHI0u0zuUrTj5vP0F-T0Dbd8kN8",
+            authDomain: "num-of-the-day.firebaseapp.com",
+            projectId: "num-of-the-day",
+            storageBucket: "num-of-the-day.appspot.com",
+            messagingSenderId: "1035941660633",
+            appId: "1:1035941660633:web:6e71187a3d5ccc813a7bc8"
+        };
+        
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+
+        let isLoginMode = true;
+
+        function toggleMode() {
+            isLoginMode = !isLoginMode;
+            document.getElementById('authTitle').textContent = isLoginMode ? 'Вход в аккаунт' : 'Регистрация';
+            document.getElementById('mainBtn').textContent = isLoginMode ? 'Войти' : 'Зарегистрироваться';
+            document.getElementById('regBtn').style.display = isLoginMode ? 'none' : 'block';
+            document.getElementById('switchText').textContent = isLoginMode ? 'Нет аккаунта? Зарегистрироваться' : 'Уже есть аккаунт? Войти';
+            document.getElementById('errorText').textContent = '';
+        }
+
+        async function handleAuth(isRegister) {
+            const email = document.getElementById('email').value.trim();
+            const password = document.getElementById('password').value;
+            const errorText = document.getElementById('errorText');
+            
+            errorText.textContent = '';
+            
+            if (!email || !password) {
+                errorText.textContent = 'Заполни все поля!';
+                return;
+            }
+
+            try {
+                if (isRegister) {
+                    await auth.createUserWithEmailAndPassword(email, password);
+                } else {
+                    await auth.signInWithEmailAndPassword(email, password);
+                }
+            } catch (error) {
+                const errors = {
+                    'auth/user-not-found': 'Пользователь не найден',
+                    'auth/wrong-password': 'Неверный пароль',
+                    'auth/email-already-in-use': 'Этот email уже зарегистрирован',
+                    'auth/weak-password': 'Пароль слишком слабый (минимум 6 символов)',
+                    'auth/invalid-email': 'Некорректный формат email'
+                };
+                errorText.textContent = errors[error.code] || 'Ошибка: ' + error.message;
+            }
+        }
+        auth.onAuthStateChanged((user) => {
+            if (user) {
+                window.location.href = 'index.html';
+            }
+        });
+    </script>
+</body>
+</html>
