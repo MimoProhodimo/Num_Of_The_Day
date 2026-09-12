@@ -51,35 +51,36 @@
             document.getElementById('errorText').textContent = '';
         }
 
-        async function handleAuth(isRegister) {
-            const email = document.getElementById('email').value.trim();
-            const password = document.getElementById('password').value;
-            const errorText = document.getElementById('errorText');
-            
-            errorText.textContent = '';
-            
-            if (!email || !password) {
-                errorText.textContent = 'Заполни все поля!';
-                return;
-            }
+        async function handleAuth() {
+    const email = document.getElementById('email').value.trim();
+    const password = document.getElementById('password').value;
+    const errorText = document.getElementById('errorText');
+    const btnText = document.getElementById('authBtn').textContent;
+    
+    errorText.textContent = '';
+    
+    if (!email || !password) {
+        errorText.textContent = 'Заполни все поля!';
+        return;
+    }
 
-            try {
-                if (isRegister) {
-                    await auth.createUserWithEmailAndPassword(email, password);
-                } else {
-                    await auth.signInWithEmailAndPassword(email, password);
-                }
-            } catch (error) {
-                const errors = {
-                    'auth/user-not-found': 'Пользователь не найден',
-                    'auth/wrong-password': 'Неверный пароль',
-                    'auth/email-already-in-use': 'Этот email уже зарегистрирован',
-                    'auth/weak-password': 'Пароль слишком слабый (минимум 6 символов)',
-                    'auth/invalid-email': 'Некорректный формат email'
-                };
-                errorText.textContent = errors[error.code] || 'Ошибка: ' + error.message;
-            }
+    try {
+        if (btnText === 'Зарегистрироваться') {
+            await auth.createUserWithEmailAndPassword(email, password);
+        } else {
+            await auth.signInWithEmailAndPassword(email, password);
         }
+    } catch (error) {
+        const errors = {
+            'auth/user-not-found': 'Пользователь не найден',
+            'auth/wrong-password': 'Неверный пароль',
+            'auth/email-already-in-use': 'Этот email уже зарегистрирован',
+            'auth/weak-password': 'Пароль слишком слабый (минимум 6 символов)',
+            'auth/invalid-email': 'Некорректный формат email'
+        };
+        errorText.textContent = errors[error.code] || 'Ошибка: ' + error.message;
+    }
+}
         auth.onAuthStateChanged((user) => {
             if (user) {
                 window.location.href = 'index.html';
