@@ -34,13 +34,8 @@
             cursor: pointer;
         }
         .auth-btn:hover { background-color: #3a9a7f; }
-        .secondary-btn {
-            background-color: transparent;
-            color: #52B69A;
-            border: 1px solid #52B69A;
-        }
-        .secondary-btn:hover { background-color: rgba(82, 182, 154, 0.1); }
         .error { color: #ff6b6b; margin-top: 10px; min-height: 20px; font-size: 14px; }
+        .success { color: #52B69A; margin-top: 10px; min-height: 20px; font-size: 14px; }
         .switch-link {
             margin-top: 20px;
             color: #99D98C;
@@ -48,3 +43,11 @@
             font-size: 14px;
         }
         .switch-link:hover { color: #52B69A; text-decoration: underline; }
+        .back-link {
+            display: inline-block;
+            margin-top: 20px;
+            color: #FFFFFF;
+            text-decoration: none;
+            font-size: 14px;
+        }
+        .back-link:hover { color: #52B69A; text-decoration: underline; }
