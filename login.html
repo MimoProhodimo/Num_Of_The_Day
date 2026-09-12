@@ -5,8 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Вход - Num of the Day</title>
     <link rel="stylesheet" href="main.css">
-    <link rel="shortcut icon" href="logo.jpg" />
-<link rel="stylesheet" href="login.css"/>
 </head>
 <body>
 
@@ -16,12 +14,16 @@
         <input type="email" id="email" placeholder="Email">
         <input type="password" id="password" placeholder="Пароль (мин. 6 символов)">
         
-        <button class="auth-btn" onclick="handleAuth(false)" id="mainBtn">Войти</button>
+        <button class="auth-btn" onclick="handleAuth()" id="authBtn">Войти</button>
+        
         <div class="error" id="errorText"></div>
+        <div class="success" id="successText"></div>
         
         <div class="switch-link" onclick="toggleMode()" id="switchText">
             Нет аккаунта? Зарегистрироваться
         </div>
+        
+        <a href="index.html" class="back-link">← На главную</a>
     </div>
 
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
@@ -44,44 +46,72 @@
 
         function toggleMode() {
             isLoginMode = !isLoginMode;
-            document.getElementById('authTitle').textContent = isLoginMode ? 'Вход в аккаунт' : 'Регистрация';
-            document.getElementById('mainBtn').textContent = isLoginMode ? 'Войти' : 'Зарегистрироваться';
-            document.getElementById('regBtn').style.display = isLoginMode ? 'none' : 'block';
-            document.getElementById('switchText').textContent = isLoginMode ? 'Нет аккаунта? Зарегистрироваться' : 'Уже есть аккаунт? Войти';
+            if (isLoginMode) {
+                document.getElementById('authTitle').textContent = 'Вход в аккаунт';
+                document.getElementById('authBtn').textContent = 'Войти';
+                document.getElementById('switchText').textContent = 'Нет аккаунта? Зарегистрироваться';
+            } else {
+                document.getElementById('authTitle').textContent = 'Регистрация';
+                document.getElementById('authBtn').textContent = 'Зарегистрироваться';
+                document.getElementById('switchText').textContent = 'Уже есть аккаунт? Войти';
+            }
             document.getElementById('errorText').textContent = '';
+            document.getElementById('successText').textContent = '';
+            document.getElementById('email').value = '';
+            document.getElementById('password').value = '';
         }
 
         async function handleAuth() {
-    const email = document.getElementById('email').value.trim();
-    const password = document.getElementById('password').value;
-    const errorText = document.getElementById('errorText');
-    const btnText = document.getElementById('authBtn').textContent;
-    
-    errorText.textContent = '';
-    
-    if (!email || !password) {
-        errorText.textContent = 'Заполни все поля!';
-        return;
-    }
+            const email = document.getElementById('email').value.trim();
+            const password = document.getElementById('password').value;
+            const errorText = document.getElementById('errorText');
+            const successText = document.getElementById('successText');
+            
+            errorText.textContent = '';
+            successText.textContent = '';
+            
+            if (!email || !password) {
+                errorText.textContent = 'Заполни все поля!';
+                return;
+            }
 
-    try {
-        if (btnText === 'Зарегистрироваться') {
-            await auth.createUserWithEmailAndPassword(email, password);
-        } else {
-            await auth.signInWithEmailAndPassword(email, password);
+            try {
+                if (!isLoginMode) {
+                    console.log("Регистрация...", email);
+                    const userCredential = await auth.createUserWithEmailAndPassword(email, password);
+                    console.log("Успешно зарегистрирован:", userCredential.user.email);
+                    successText.textContent = 'Регистрация успешна! Перенаправление...';
+                    
+                    setTimeout(() => {
+                        window.location.href = 'index.html';
+                    }, 1000);
+                    
+                } else {
+                    console.log("Вход...", email);
+                    await auth.signInWithEmailAndPassword(email, password);
+                    console.log("Успешный вход!");
+                    successText.textContent = 'Вход выполнен! Перенаправление...';
+                    
+                    setTimeout(() => {
+                        window.location.href = 'index.html';
+                    }, 1000);
+                }
+            } catch (error) {
+                console.error("Ошибка:", error.code, error.message);
+                const errors = {
+                    'auth/user-not-found': 'Пользователь не найден',
+                    'auth/wrong-password': 'Неверный пароль',
+                    'auth/email-already-in-use': 'Этот email уже зарегистрирован',
+                    'auth/weak-password': 'Пароль слишком слабый (минимум 6 символов)',
+                    'auth/invalid-email': 'Некорректный формат email',
+                    'auth/configuration-not-found': 'Firebase Auth не включен в консоли'
+                };
+                errorText.textContent = errors[error.code] || 'Ошибка: ' + error.message;
+            }
         }
-    } catch (error) {
-        const errors = {
-            'auth/user-not-found': 'Пользователь не найден',
-            'auth/wrong-password': 'Неверный пароль',
-            'auth/email-already-in-use': 'Этот email уже зарегистрирован',
-            'auth/weak-password': 'Пароль слишком слабый (минимум 6 символов)',
-            'auth/invalid-email': 'Некорректный формат email'
-        };
-        errorText.textContent = errors[error.code] || 'Ошибка: ' + error.message;
-    }
-}
+
         auth.onAuthStateChanged((user) => {
+            console.log("onAuthStateChanged:", user ? user.email : 'нет пользователя');
             if (user) {
                 window.location.href = 'index.html';
             }
