@@ -22,8 +22,12 @@
     <a href="calendar.html" style="color: #99D98C; text-decoration: none; margin-top: 20px; display: inline-block;">Календарь 📅</a>
     
     <br><br>
-    <button onclick="logout()" style="background: #DC2626; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-size: 14px;">Выйти из аккаунта</button>
+    <!-- Кнопка входа/выхода -->
+    <button onclick="goToLogin()" id="loginBtn" style="background: #52B69A; color: #184E77; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-size: 14px; margin-right: 10px;">Войти</button>
+    <button onclick="logout()" id="logoutBtn" style="display: none; background: #DC2626; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-size: 14px;">Выйти</button>
+    <span id="userEmail" style="color: #99D98C; margin-left: 10px; font-size: 14px;"></span>
 
+    <!-- Подключаем Firebase -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
@@ -40,20 +44,34 @@
         
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
-        const auth = firebase.auth(); 
+        const auth = firebase.auth();
 
+        // Проверяем, вошел ли пользователь (но НЕ выкидываем!)
         auth.onAuthStateChanged((user) => {
-            if (!user) {
-                window.location.href = 'login.html';
+            if (user) {
+                // Пользователь вошел
+                document.getElementById('loginBtn').style.display = 'none';
+                document.getElementById('logoutBtn').style.display = 'inline-block';
+                document.getElementById('userEmail').textContent = user.email;
+            } else {
+                // Гость
+                document.getElementById('loginBtn').style.display = 'inline-block';
+                document.getElementById('logoutBtn').style.display = 'none';
+                document.getElementById('userEmail').textContent = '';
             }
         });
 
+        function goToLogin() {
+            window.location.href = 'login.html';
+        }
+
         function logout() {
             auth.signOut().then(() => {
-                window.location.href = 'login.html';
+                location.reload();
             });
         }
 
+        // Твоя рабочая логика (без изменений)
         function getCurrentDate() {
             return new Date().toISOString().split('T')[0];
         }
