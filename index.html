@@ -46,7 +46,6 @@
         const db = firebase.firestore();
         const auth = firebase.auth();
 
-        // Проверяем, вошел ли пользователь (но НЕ выкидываем!)
         auth.onAuthStateChanged((user) => {
             if (user) {
                 // Пользователь вошел
