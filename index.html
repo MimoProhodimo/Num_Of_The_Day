@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="shortcut icon" href="logo.jpg" />
     <title>Num of the Day</title>
-    <link rel="stylesheet" href="main.css"/>
+<link rel="stylesheet" href="main.css"/>
 </head>
 <body>
 
@@ -19,17 +19,12 @@
     <button onclick="getNewDriver()">Новый гонщик</button>
 
     <br>
-    <a href="calendar.html" style="color: #99D98C; text-decoration: none; margin-top: 20px; display: inline-block;">Календарь </a>
-    
-    <br><br>
-    <button onclick="logout()" style="background: #DC2626; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-size: 14px;">Выйти из аккаунта</button>
+<a href="calendar.html" style="color: #99D98C; text-decoration: none; margin-top: 20px;">Календарь </a>
 
-    <!-- 1. Подключаем ВСЕ нужные модули Firebase -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script> 
     
-    <script>
+           <script>
         const firebaseConfig = {
             apiKey: "AIzaSyAWQTRrHHI0u0zuUrTj5vP0F-T0Dbd8kN8",
             authDomain: "num-of-the-day.firebaseapp.com",
@@ -41,30 +36,13 @@
         
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
-        const auth = firebase.auth(); 
 
-        // 2. ГЛАВНАЯ ПРОВЕРКА: Залогинен ли пользователь?
-        auth.onAuthStateChanged((user) => {
-            if (!user) {
-                // Если пользователя нет, мгновенно кидаем его на страницу входа
-                window.location.href = 'login.html';
-            } else {
-                console.log("Успешный вход! Пользователь:", user.email);
-                // Если пользователь есть, код пойдет дальше и загрузит гонщика
-            }
-        });
-
-        // 3. Функция выхода
-        function logout() {
-            auth.signOut().then(() => {
-                window.location.href = 'login.html';
-            });
-        }
-
+        // Получаем текущую дату в формате YYYY-MM-DD
         function getCurrentDate() {
             return new Date().toISOString().split('T')[0];
         }
 
+        // Функция отображения гонщика на экране
         function displayDriver(driver) {
             document.getElementById('number').textContent = driver.Num || '?';
             document.getElementById('name').textContent = driver.Name || 'Неизвестно';
@@ -81,13 +59,18 @@
             
             try {
                 const snapshot = await db.collection('drivers').get();
+                
                 if (snapshot.empty) {
                     nameEl.textContent = 'База пуста!';
                     return null;
                 }
+                
                 const drivers = [];
                 snapshot.forEach(doc => drivers.push(doc.data()));
-                return drivers[Math.floor(Math.random() * drivers.length)];
+                const driver = drivers[Math.floor(Math.random() * drivers.length)];
+                
+                return driver;
+                
             } catch (error) {
                 console.error('Ошибка:', error);
                 nameEl.textContent = 'Ошибка загрузки';
@@ -98,12 +81,14 @@
         async function getNewDriver() {
             const driver = await fetchNewDriver();
             if (driver) {
+                // Сохраняем гонщика И дату
                 localStorage.setItem('driver_data', JSON.stringify(driver));
                 localStorage.setItem('driver_date', getCurrentDate());
                 displayDriver(driver);
             }
         }
 
+        // Инициализация при загрузке страницы
         function initApp() {
             const savedDriverJSON = localStorage.getItem('driver_data');
             const savedDate = localStorage.getItem('driver_date');
