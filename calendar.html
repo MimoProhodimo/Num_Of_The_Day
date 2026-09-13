@@ -17,8 +17,6 @@
     </div>
 
     <div class="stats" id="statsText">0 дн.</div>
-    <div class="sync-status" id="syncStatus">Загрузка...</div>
-
     <div class="weekdays">
         <div>Пн</div><div>Вт</div><div>Ср</div><div>Чт</div><div>Пт</div><div>Сб</div><div>Вс</div>
     </div>
@@ -26,7 +24,7 @@
     <div class="calendar-grid" id="calendarGrid">
     </div>
 
-    <a href="index.html" class="back-btn" style="color: white; text-decoration: none;">← Назад к гонщику</a>
+    <a href="index.html" class="back-btn" style="color: white; text-decoration: none;">Назад к гонщику</a>
 
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
@@ -56,7 +54,7 @@
                 document.getElementById('syncStatus');
                 loadCalendarFromFirestore();
             } else {
-                document.getElementById('syncStatus').textContent = '⚠ Гостевой режим (данные не синхронизируются)';
+                document.getElementById('syncStatus');
                 loadCalendarFromLocalStorage();
             }
         });
