@@ -3,9 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="calendar.css" />
-    <link rel="shortcut icon" href="logo.jpg" />
     <title>Календарь - Num of the Day</title>
+    <link rel="stylesheet" href="main.css">
 </head>
 <body>
 
@@ -16,6 +15,7 @@
     </div>
 
     <div class="stats" id="statsText">0 дн.</div>
+    <div class="sync-status" id="syncStatus">Загрузка...</div>
 
     <div class="weekdays">
         <div>Пн</div><div>Вт</div><div>Ср</div><div>Чт</div><div>Пт</div><div>Сб</div><div>Вс</div>
@@ -24,39 +24,111 @@
     <div class="calendar-grid" id="calendarGrid">
     </div>
 
-    <a href="index.html" class="back-btn">Назад</a>
+    <a href="index.html" class="back-btn" style="color: white; text-decoration: none;">← Назад к гонщику</a>
 
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    
     <script>
-        // Загружаем отмеченные дни из памяти (массив строк)
-        let activeDates = new Set(JSON.parse(localStorage.getItem('activeDates') || '[]'));
+        const firebaseConfig = {
+            apiKey: "AIzaSyAWQTRrHHI0u0zuUrTj5vP0F-T0Dbd8kN8",
+            authDomain: "num-of-the-day.firebaseapp.com",
+            projectId: "num-of-the-day",
+            storageBucket: "num-of-the-day.appspot.com",
+            messagingSenderId: "1035941660633",
+            appId: "1:1035941660633:web:6e71187a3d5ccc813a7bc8"
+        };
         
-        // Текущий отображаемый месяц
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+        const auth = firebase.auth();
+
+        let currentUser = null;
+        let activeDates = new Set();
         let displayDate = new Date();
+
+        auth.onAuthStateChanged((user) => {
+            currentUser = user;
+            if (user) {
+                document.getElementById('syncStatus').textContent = '✓ Синхронизация включена';
+                loadCalendarFromFirestore();
+            } else {
+                document.getElementById('syncStatus').textContent = '⚠ Гостевой режим (данные не синхронизируются)';
+                loadCalendarFromLocalStorage();
+            }
+        });
+
+        async function loadCalendarFromFirestore() {
+            if (!currentUser) return;
+            
+            try {
+                const snapshot = await db.collection('users').doc(currentUser.uid).collection('calendar').get();
+                activeDates.clear();
+                snapshot.forEach(doc => {
+                    if (doc.data().active) {
+                        activeDates.add(doc.id);
+                    }
+                });
+                renderCalendar();
+            } catch (error) {
+                console.error('Ошибка загрузки календаря:', error);
+            }
+        }
+
+        function loadCalendarFromLocalStorage() {
+            const saved = localStorage.getItem('activeDates');
+            activeDates = new Set(JSON.parse(saved || '[]'));
+            renderCalendar();
+        }
+
+        async function toggleDate(dateStr) {
+            if (currentUser) {
+                const isActive = activeDates.has(dateStr);
+                await db.collection('users').doc(currentUser.uid).collection('calendar').doc(dateStr).set({
+                    active: !isActive,
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                if (isActive) {
+                    activeDates.delete(dateStr);
+                } else {
+                    activeDates.add(dateStr);
+                }
+            } else {
+                if (activeDates.has(dateStr)) {
+                    activeDates.delete(dateStr);
+                } else {
+                    activeDates.add(dateStr);
+                }
+                localStorage.setItem('activeDates', JSON.stringify([...activeDates]));
+            }
+            renderCalendar();
+        }
+
+        function changeMonth(offset) {
+            displayDate.setMonth(displayDate.getMonth() + offset);
+            renderCalendar();
+        }
 
         function renderCalendar() {
             const grid = document.getElementById('calendarGrid');
             const title = document.getElementById('monthTitle');
             const stats = document.getElementById('statsText');
             
-            grid.innerHTML = ''; // Очищаем сетку
-
+            grid.innerHTML = '';
             const year = displayDate.getFullYear();
             const month = displayDate.getMonth();
 
-            // Название месяца на русском
             const monthNames = ['Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь', 'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь'];
             title.textContent = `${monthNames[month]} ${year}`;
 
-            // Первый день месяца
             const firstDay = new Date(year, month, 1);
-            // Количество дней в месяце
             const lastDay = new Date(year, month + 1, 0).getDate();
             
             let startDayIndex = firstDay.getDay() - 1;
             if (startDayIndex === -1) startDayIndex = 6;
 
             let activeCount = 0;
-            const monthPrefix = `${year}-${String(month + 1).padStart(2, '0')}-`;
 
             for (let i = 0; i < startDayIndex; i++) {
                 const emptyCell = document.createElement('div');
@@ -75,31 +147,12 @@
                     activeCount++;
                 }
 
-                // Клик по дню
                 cell.onclick = () => toggleDate(dateStr);
                 grid.appendChild(cell);
             }
 
             stats.textContent = `${activeCount} дн.`;
         }
-
-        function toggleDate(dateStr) {
-            if (activeDates.has(dateStr)) {
-                activeDates.delete(dateStr);
-            } else {
-                activeDates.add(dateStr);
-            }
-            localStorage.setItem('activeDates', JSON.stringify([...activeDates]));
-            renderCalendar();
-        }
-
-        function changeMonth(offset) {
-            displayDate.setMonth(displayDate.getMonth() + offset);
-            renderCalendar();
-        }
-
-        renderCalendar();
     </script>
-
 </body>
 </html>
