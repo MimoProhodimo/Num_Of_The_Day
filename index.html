@@ -22,12 +22,10 @@
     <a href="calendar.html" style="color: #99D98C; text-decoration: none; margin-top: 20px; display: inline-block;">Календарь</a>
     
     <br><br>
-    <!-- Кнопка входа/выхода -->
     <button onclick="goToLogin()" id="loginBtn" style="background: #52B69A; color: #184E77; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-size: 14px; margin-right: 10px;">Войти</button>
     <button onclick="logout()" id="logoutBtn" style="display: none; background: #DC2626; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-size: 14px;">Выйти</button>
     <span id="userEmail" style="color: #99D98C; margin-left: 10px; font-size: 14px;"></span>
 
-    <!-- Подключаем Firebase -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
@@ -46,18 +44,20 @@
         const db = firebase.firestore();
         const auth = firebase.auth();
 
+        let currentUser = null;
+
         auth.onAuthStateChanged((user) => {
+            currentUser = user;
             if (user) {
-                // Пользователь вошел
                 document.getElementById('loginBtn').style.display = 'none';
                 document.getElementById('logoutBtn').style.display = 'inline-block';
                 document.getElementById('userEmail').textContent = user.email;
             } else {
-                // Гость
                 document.getElementById('loginBtn').style.display = 'inline-block';
                 document.getElementById('logoutBtn').style.display = 'none';
                 document.getElementById('userEmail').textContent = '';
             }
+            initApp();
         });
 
         function goToLogin() {
@@ -70,7 +70,6 @@
             });
         }
 
-        // Твоя рабочая логика (без изменений)
         function getCurrentDate() {
             return new Date().toISOString().split('T')[0];
         }
@@ -104,29 +103,61 @@
         async function getNewDriver() {
             const driver = await fetchNewDriver();
             if (driver) {
-                localStorage.setItem('driver_data', JSON.stringify(driver));
-                localStorage.setItem('driver_date', getCurrentDate());
+                const today = getCurrentDate();
+                
+                if (currentUser) {
+                    await db.collection('users').doc(currentUser.uid).collection('todayDriver').doc(today).set({
+                        driver: driver,
+                        timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                    });
+                } else {
+                    localStorage.setItem('driver_data', JSON.stringify(driver));
+                    localStorage.setItem('driver_date', today);
+                }
+                
                 displayDriver(driver);
             }
         }
 
-        function initApp() {
+        async function initApp() {
+            const today = getCurrentDate();
+            
+            if (currentUser) {
+                try {
+                    const doc = await db.collection('users').doc(currentUser.uid).collection('todayDriver').doc(today).get();
+                    if (doc.exists) {
+                        displayDriver(doc.data().driver);
+                        return;
+                    }
+                } catch (error) {
+                    console.error('Ошибка загрузки из Firestore:', error);
+                }
+            }
+            
             const savedDriverJSON = localStorage.getItem('driver_data');
             const savedDate = localStorage.getItem('driver_date');
-            const today = getCurrentDate();
+            
             if (savedDriverJSON && savedDate === today) {
                 displayDriver(JSON.parse(savedDriverJSON));
             } else {
-                fetchNewDriver().then(driver => {
-                    if (driver) {
+                const driver = await fetchNewDriver();
+                if (driver) {
+                    if (currentUser) {
+                        await db.collection('users').doc(currentUser.uid).collection('todayDriver').doc(today).set({
+                            driver: driver,
+                            timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                        });
+                    } else {
                         localStorage.setItem('driver_data', JSON.stringify(driver));
                         localStorage.setItem('driver_date', today);
-                        displayDriver(driver);
                     }
-                });
+                    displayDriver(driver);
+                }
             }
         }
-        window.onload = initApp;
+
+        window.onload = () => {
+        };
     </script>
 </body>
 </html>
