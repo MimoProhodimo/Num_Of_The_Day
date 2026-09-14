@@ -139,12 +139,6 @@ body {
             gap: 15px;
             margin-bottom: 20px;
         }
-        .stat-card {
-            background-color: #1E6091;
-            padding: 20px;
-            border-radius: 8px;
-            text-align: center;
-        }
         .stat-value {
             font-size: 32px;
             font-weight: bold;
