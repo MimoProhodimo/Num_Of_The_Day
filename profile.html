@@ -9,18 +9,14 @@
     <link rel="shortcut icon" href="logo.jpg" />
 </head>
 <body>
-
-    <a href="index.html" class="back-link">← На главную</a>
-
+    <a href="index.html" class="back-link">На главную</a>
     <div class="profile-container">
         <div class="profile-header">
             <div class="profile-avatar" id="avatar">👤</div>
             <h2>Личный кабинет</h2>
         </div>
-
-        <!-- Основная информация -->
         <div class="section">
-            <h3>📋 Основная информация</h3>
+            <h3>Основная информация</h3>
             <div class="info-row">
                 <span class="info-label">Email:</span>
                 <div>
@@ -45,10 +41,8 @@
                 <span class="info-value" id="lastLogin">...</span>
             </div>
         </div>
-
-        <!-- Статистика -->
         <div class="section">
-            <h3>📊 Статистика</h3>
+            <h3>Статистика</h3>
             <div class="stats-grid">
                 <div class="stat-card">
                     <div class="stat-value" id="calendarDays">0</div>
@@ -60,10 +54,8 @@
                 </div>
             </div>
         </div>
-
-        <!-- Смена имени -->
         <div class="section">
-            <h3>✏️ Изменить имя</h3>
+            <h3>Изменить имя</h3>
             <div class="form-group">
                 <label>Новое имя:</label>
                 <input type="text" id="newName" placeholder="Введите новое имя">
@@ -71,10 +63,8 @@
             <button class="btn btn-primary" onclick="updateName()">Сохранить</button>
             <div id="nameMessage"></div>
         </div>
-
-        <!-- Смена email -->
         <div class="section">
-            <h3>📧 Изменить email</h3>
+            <h3>Изменить email</h3>
             <div class="form-group">
                 <label>Новый email:</label>
                 <input type="email" id="newEmail" placeholder="Введите новый email">
@@ -83,10 +73,8 @@
             <button class="btn btn-secondary" onclick="sendVerification()" id="verifyBtn">Отправить подтверждение</button>
             <div id="emailMessage"></div>
         </div>
-
-        <!-- Смена пароля -->
         <div class="section">
-            <h3>🔒 Изменить пароль</h3>
+            <h3>Изменить пароль</h3>
             <div class="form-group">
                 <label>Новый пароль:</label>
                 <input type="password" id="newPassword" placeholder="Минимум 6 символов">
@@ -98,20 +86,16 @@
             <button class="btn btn-primary" onclick="updatePassword()">Изменить пароль</button>
             <div id="passwordMessage"></div>
         </div>
-
-        <!-- Кнопки действий -->
         <div class="section">
-            <button class="btn btn-primary" onclick="goToCalendar()">📅 Мой календарь</button>
-            <button class="btn btn-secondary" onclick="logout()">🚪 Выйти из аккаунта</button>
+            <button class="btn btn-primary" onclick="goToCalendar()">Мой календарь</button>
+            <button class="btn btn-secondary" onclick="logout()">Выйти из аккаунта</button>
         </div>
-
-        <!-- Опасная зона -->
         <div class="danger-zone">
             <h3>️ Опасная зона</h3>
             <p style="color: #99D98C; font-size: 14px; margin-bottom: 15px;">
                 Удаление аккаунта необратимо. Все ваши данные будут удалены.
             </p>
-            <button class="btn btn-danger" onclick="confirmDeleteAccount()">🗑️ Удалить аккаунт</button>
+            <button class="btn btn-danger" onclick="confirmDeleteAccount()">Удалить аккаунт</button>
         </div>
     </div>
 
@@ -149,16 +133,14 @@
             document.getElementById('userId').textContent = currentUser.uid;
             document.getElementById('userName').textContent = currentUser.displayName || 'Не указано';
             
-            // Бейдж верификации email
             const badge = document.getElementById('emailBadge');
             if (currentUser.emailVerified) {
-                badge.innerHTML = '<span class="verified-badge">✓ Подтверждён</span>';
+                badge.innerHTML = '<span class="verified-badge">Подтверждён</span>';
                 document.getElementById('verifyBtn').style.display = 'none';
             } else {
-                badge.innerHTML = '<span class="unverified-badge">! Не подтверждён</span>';
+                badge.innerHTML = '<span class="unverified-badge">Не подтверждён</span>';
             }
 
-            // Даты
             const creationTime = currentUser.metadata.creationTime;
             const lastSignInTime = currentUser.metadata.lastSignInTime;
             
@@ -172,8 +154,6 @@
                 document.getElementById('lastLogin').textContent = 
                     date.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' });
             }
-
-            // Статистика
             try {
                 const calendarSnapshot = await db.collection('users').doc(currentUser.uid).collection('calendar').get();
                 let activeDays = 0;
@@ -206,7 +186,7 @@
                 await currentUser.updateProfile({ displayName: newName });
                 document.getElementById('userName').textContent = newName;
                 document.getElementById('newName').value = '';
-                showMessage('nameMessage', '✓ Имя изменено', 'success');
+                showMessage('nameMessage', 'Имя изменено', 'success');
             } catch (error) {
                 showMessage('nameMessage', 'Ошибка: ' + error.message, 'error');
             }
@@ -223,7 +203,7 @@
                 await currentUser.updateEmail(newEmail);
                 document.getElementById('userEmail').textContent = newEmail;
                 document.getElementById('newEmail').value = '';
-                showMessage('emailMessage', '✓ Email изменен. Проверьте почту для подтверждения.', 'success');
+                showMessage('emailMessage', 'Email изменен. Проверьте почту для подтверждения.', 'success');
             } catch (error) {
                 if (error.code === 'auth/requires-recent-login') {
                     showMessage('emailMessage', 'Требуется повторный вход. Выйдите и войдите снова.', 'error');
@@ -236,7 +216,7 @@
         async function sendVerification() {
             try {
                 await currentUser.sendEmailVerification();
-                showMessage('emailMessage', '✓ Письмо отправлено на ' + currentUser.email, 'success');
+                showMessage('emailMessage', 'Письмо отправлено на ' + currentUser.email, 'success');
             } catch (error) {
                 showMessage('emailMessage', 'Ошибка: ' + error.message, 'error');
             }
@@ -259,7 +239,7 @@
                 await currentUser.updatePassword(newPassword);
                 document.getElementById('newPassword').value = '';
                 document.getElementById('confirmPassword').value = '';
-                showMessage('passwordMessage', '✓ Пароль изменен', 'success');
+                showMessage('passwordMessage', 'Пароль изменен', 'success');
             } catch (error) {
                 if (error.code === 'auth/requires-recent-login') {
                     showMessage('passwordMessage', 'Требуется повторный вход. Выйдите и войдите снова.', 'error');
@@ -280,7 +260,7 @@
         }
 
         async function confirmDeleteAccount() {
-            const confirmed = confirm('⚠️ ВЫ УВЕРЕНЫ?\n\nЭто действие НЕОБРАТИМО!\n\nБудут удалены:\n• Ваш аккаунт\n• Весь календарь\n• Вся история гонщиков\n\nНажмите OK для подтверждения.');
+            const confirmed = confirm('Вы уверены?\n\nЭто действие НЕОБРАТИМО!\n\nНажмите OK для подтверждения.');
             if (!confirmed) return;
 
             const doubleCheck = prompt('Для подтверждения введите ваш email:\n' + currentUser.email);
