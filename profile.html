@@ -18,41 +18,100 @@
             <h2>Личный кабинет</h2>
         </div>
 
-        <div class="profile-info">
-            <div class="profile-info-row">
+        <!-- Основная информация -->
+        <div class="section">
+            <h3>📋 Основная информация</h3>
+            <div class="info-row">
                 <span class="info-label">Email:</span>
-                <span class="info-value" id="userEmail">Загрузка...</span>
+                <div>
+                    <span class="info-value" id="userEmail">Загрузка...</span>
+                    <span id="emailBadge"></span>
+                </div>
             </div>
-            <div class="profile-info-row">
+            <div class="info-row">
+                <span class="info-label">Имя:</span>
+                <span class="info-value" id="userName">Не указано</span>
+            </div>
+            <div class="info-row">
                 <span class="info-label">ID пользователя:</span>
                 <span class="info-value" id="userId">...</span>
             </div>
-            <div class="profile-info-row">
+            <div class="info-row">
                 <span class="info-label">Дата регистрации:</span>
                 <span class="info-value" id="registrationDate">...</span>
             </div>
-        </div>
-
-        <div class="stats-grid">
-            <div class="stat-card">
-                <div class="stat-value" id="calendarDays">0</div>
-                <div class="stat-label">Отмечено дней</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-value" id="trackedDays">0</div>
-                <div class="stat-label">Дней с гонщиком</div>
+            <div class="info-row">
+                <span class="info-label">Последний вход:</span>
+                <span class="info-value" id="lastLogin">...</span>
             </div>
         </div>
 
-        <button class="btn btn-primary" onclick="logout()">Выйти из аккаунта</button>
-        <button class="btn btn-secondary" onclick="goToCalendar()">Мой календарь</button>
+        <!-- Статистика -->
+        <div class="section">
+            <h3>📊 Статистика</h3>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-value" id="calendarDays">0</div>
+                    <div class="stat-label">Отмечено дней</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="trackedDays">0</div>
+                    <div class="stat-label">Дней с гонщиком</div>
+                </div>
+            </div>
+        </div>
 
+        <!-- Смена имени -->
+        <div class="section">
+            <h3>✏️ Изменить имя</h3>
+            <div class="form-group">
+                <label>Новое имя:</label>
+                <input type="text" id="newName" placeholder="Введите новое имя">
+            </div>
+            <button class="btn btn-primary" onclick="updateName()">Сохранить</button>
+            <div id="nameMessage"></div>
+        </div>
+
+        <!-- Смена email -->
+        <div class="section">
+            <h3>📧 Изменить email</h3>
+            <div class="form-group">
+                <label>Новый email:</label>
+                <input type="email" id="newEmail" placeholder="Введите новый email">
+            </div>
+            <button class="btn btn-primary" onclick="updateEmail()">Изменить email</button>
+            <button class="btn btn-secondary" onclick="sendVerification()" id="verifyBtn">Отправить подтверждение</button>
+            <div id="emailMessage"></div>
+        </div>
+
+        <!-- Смена пароля -->
+        <div class="section">
+            <h3>🔒 Изменить пароль</h3>
+            <div class="form-group">
+                <label>Новый пароль:</label>
+                <input type="password" id="newPassword" placeholder="Минимум 6 символов">
+            </div>
+            <div class="form-group">
+                <label>Подтвердите пароль:</label>
+                <input type="password" id="confirmPassword" placeholder="Повторите пароль">
+            </div>
+            <button class="btn btn-primary" onclick="updatePassword()">Изменить пароль</button>
+            <div id="passwordMessage"></div>
+        </div>
+
+        <!-- Кнопки действий -->
+        <div class="section">
+            <button class="btn btn-primary" onclick="goToCalendar()">📅 Мой календарь</button>
+            <button class="btn btn-secondary" onclick="logout()">🚪 Выйти из аккаунта</button>
+        </div>
+
+        <!-- Опасная зона -->
         <div class="danger-zone">
-            <h3>Опасная зона</h3>
+            <h3>️ Опасная зона</h3>
             <p style="color: #99D98C; font-size: 14px; margin-bottom: 15px;">
                 Удаление аккаунта необратимо. Все ваши данные будут удалены.
             </p>
-            <button class="btn btn-danger" onclick="confirmDeleteAccount()">Удалить аккаунт</button>
+            <button class="btn btn-danger" onclick="confirmDeleteAccount()">🗑️ Удалить аккаунт</button>
         </div>
     </div>
 
@@ -88,14 +147,33 @@
         async function loadProfile() {
             document.getElementById('userEmail').textContent = currentUser.email;
             document.getElementById('userId').textContent = currentUser.uid;
+            document.getElementById('userName').textContent = currentUser.displayName || 'Не указано';
             
+            // Бейдж верификации email
+            const badge = document.getElementById('emailBadge');
+            if (currentUser.emailVerified) {
+                badge.innerHTML = '<span class="verified-badge">✓ Подтверждён</span>';
+                document.getElementById('verifyBtn').style.display = 'none';
+            } else {
+                badge.innerHTML = '<span class="unverified-badge">! Не подтверждён</span>';
+            }
+
+            // Даты
             const creationTime = currentUser.metadata.creationTime;
+            const lastSignInTime = currentUser.metadata.lastSignInTime;
+            
             if (creationTime) {
                 const date = new Date(creationTime);
                 document.getElementById('registrationDate').textContent = 
                     date.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' });
             }
+            if (lastSignInTime) {
+                const date = new Date(lastSignInTime);
+                document.getElementById('lastLogin').textContent = 
+                    date.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+            }
 
+            // Статистика
             try {
                 const calendarSnapshot = await db.collection('users').doc(currentUser.uid).collection('calendar').get();
                 let activeDays = 0;
@@ -106,9 +184,88 @@
 
                 const driverSnapshot = await db.collection('users').doc(currentUser.uid).collection('todayDriver').get();
                 document.getElementById('trackedDays').textContent = driverSnapshot.size;
-
             } catch (error) {
                 console.error('Ошибка загрузки статистики:', error);
+            }
+        }
+
+        function showMessage(elementId, text, type) {
+            const el = document.getElementById(elementId);
+            el.innerHTML = `<div class="message ${type}">${text}</div>`;
+            setTimeout(() => el.innerHTML = '', 5000);
+        }
+
+        async function updateName() {
+            const newName = document.getElementById('newName').value.trim();
+            if (!newName) {
+                showMessage('nameMessage', 'Введите имя', 'error');
+                return;
+            }
+
+            try {
+                await currentUser.updateProfile({ displayName: newName });
+                document.getElementById('userName').textContent = newName;
+                document.getElementById('newName').value = '';
+                showMessage('nameMessage', '✓ Имя изменено', 'success');
+            } catch (error) {
+                showMessage('nameMessage', 'Ошибка: ' + error.message, 'error');
+            }
+        }
+
+        async function updateEmail() {
+            const newEmail = document.getElementById('newEmail').value.trim();
+            if (!newEmail) {
+                showMessage('emailMessage', 'Введите email', 'error');
+                return;
+            }
+
+            try {
+                await currentUser.updateEmail(newEmail);
+                document.getElementById('userEmail').textContent = newEmail;
+                document.getElementById('newEmail').value = '';
+                showMessage('emailMessage', '✓ Email изменен. Проверьте почту для подтверждения.', 'success');
+            } catch (error) {
+                if (error.code === 'auth/requires-recent-login') {
+                    showMessage('emailMessage', 'Требуется повторный вход. Выйдите и войдите снова.', 'error');
+                } else {
+                    showMessage('emailMessage', 'Ошибка: ' + error.message, 'error');
+                }
+            }
+        }
+
+        async function sendVerification() {
+            try {
+                await currentUser.sendEmailVerification();
+                showMessage('emailMessage', '✓ Письмо отправлено на ' + currentUser.email, 'success');
+            } catch (error) {
+                showMessage('emailMessage', 'Ошибка: ' + error.message, 'error');
+            }
+        }
+
+        async function updatePassword() {
+            const newPassword = document.getElementById('newPassword').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+
+            if (!newPassword || newPassword.length < 6) {
+                showMessage('passwordMessage', 'Пароль должен быть минимум 6 символов', 'error');
+                return;
+            }
+            if (newPassword !== confirmPassword) {
+                showMessage('passwordMessage', 'Пароли не совпадают', 'error');
+                return;
+            }
+
+            try {
+                await currentUser.updatePassword(newPassword);
+                document.getElementById('newPassword').value = '';
+                document.getElementById('confirmPassword').value = '';
+                showMessage('passwordMessage', '✓ Пароль изменен', 'success');
+            } catch (error) {
+                if (error.code === 'auth/requires-recent-login') {
+                    showMessage('passwordMessage', 'Требуется повторный вход. Выйдите и войдите снова.', 'error');
+                } else {
+                    showMessage('passwordMessage', 'Ошибка: ' + error.message, 'error');
+                }
             }
         }
 
@@ -123,18 +280,10 @@
         }
 
         async function confirmDeleteAccount() {
-            const confirmed = confirm(
-                'Вы уверены?\n\n' +
-                'Это действие НЕОБРАТИМО!\n\n' +
-                'Нажмите OK для подтверждения.'
-            );
-            
+            const confirmed = confirm('⚠️ ВЫ УВЕРЕНЫ?\n\nЭто действие НЕОБРАТИМО!\n\nБудут удалены:\n• Ваш аккаунт\n• Весь календарь\n• Вся история гонщиков\n\nНажмите OK для подтверждения.');
             if (!confirmed) return;
 
-            const doubleCheck = prompt(
-                'Для подтверждения введите ваш email:\n' + currentUser.email
-            );
-            
+            const doubleCheck = prompt('Для подтверждения введите ваш email:\n' + currentUser.email);
             if (doubleCheck !== currentUser.email) {
                 alert('Email не совпадает. Удаление отменено.');
                 return;
@@ -149,20 +298,15 @@
                 
                 const calendarSnapshot = await db.collection('users').doc(userId).collection('calendar').get();
                 const batch = db.batch();
-                calendarSnapshot.forEach(doc => {
-                    batch.delete(doc.ref);
-                });
+                calendarSnapshot.forEach(doc => batch.delete(doc.ref));
                 await batch.commit();
 
                 const driverSnapshot = await db.collection('users').doc(userId).collection('todayDriver').get();
                 const driverBatch = db.batch();
-                driverSnapshot.forEach(doc => {
-                    driverBatch.delete(doc.ref);
-                });
+                driverSnapshot.forEach(doc => driverBatch.delete(doc.ref));
                 await driverBatch.commit();
 
                 await db.collection('users').doc(userId).delete();
-
                 await currentUser.delete();
 
                 alert('Аккаунт успешно удален.');
@@ -170,12 +314,8 @@
                 
             } catch (error) {
                 console.error('Ошибка удаления:', error);
-                
                 if (error.code === 'auth/requires-recent-login') {
-                    alert(
-                        'Для безопасности требуется повторный вход.\n\n' +
-                        'Пожалуйста, выйдите и войдите снова, затем попробуйте удалить аккаунт.'
-                    );
+                    alert('Для безопасности требуется повторный вход.\n\nПожалуйста, выйдите и войдите снова, затем попробуйте удалить аккаунт.');
                 } else {
                     alert('Произошла ошибка при удалении: ' + error.message);
                 }
