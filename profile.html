@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Профиль - Num of the Day</title>
+    <link rel="stylesheet" href="main.css">
+</head>
+<body>
+
+    <a href="index.html" class="back-link">← На главную</a>
+
+    <div class="profile-container">
+        <div class="profile-header">
+            <div class="profile-avatar" id="avatar">👤</div>
+            <h2>Личный кабинет</h2>
+        </div>
+
+        <div class="profile-info">
+            <div class="profile-info-row">
+                <span class="info-label">Email:</span>
+                <span class="info-value" id="userEmail">Загрузка...</span>
+            </div>
+            <div class="profile-info-row">
+                <span class="info-label">ID пользователя:</span>
+                <span class="info-value" id="userId">...</span>
+            </div>
+            <div class="profile-info-row">
+                <span class="info-label">Дата регистрации:</span>
+                <span class="info-value" id="registrationDate">...</span>
+            </div>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-value" id="calendarDays">0</div>
+                <div class="stat-label">Отмечено дней</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="trackedDays">0</div>
+                <div class="stat-label">Дней с гонщиком</div>
+            </div>
+        </div>
+
+        <button class="btn btn-primary" onclick="logout()">Выйти из аккаунта</button>
+        <button class="btn btn-secondary" onclick="goToCalendar()">Мой календарь</button>
+
+        <div class="danger-zone">
+            <h3>Опасная зона</h3>
+            <p style="color: #99D98C; font-size: 14px; margin-bottom: 15px;">
+                Удаление аккаунта необратимо. Все ваши данные будут удалены.
+            </p>
+            <button class="btn btn-danger" onclick="confirmDeleteAccount()">Удалить аккаунт</button>
+        </div>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyAWQTRrHHI0u0zuUrTj5vP0F-T0Dbd8kN8",
+            authDomain: "num-of-the-day.firebaseapp.com",
+            projectId: "num-of-the-day",
+            storageBucket: "num-of-the-day.appspot.com",
+            messagingSenderId: "1035941660633",
+            appId: "1:1035941660633:web:6e71187a3d5ccc813a7bc8"
+        };
+        
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+        const auth = firebase.auth();
+
+        let currentUser = null;
+
+        auth.onAuthStateChanged((user) => {
+            if (!user) {
+                window.location.href = 'login.html';
+                return;
+            }
+            currentUser = user;
+            loadProfile();
+        });
+
+        async function loadProfile() {
+            document.getElementById('userEmail').textContent = currentUser.email;
+            document.getElementById('userId').textContent = currentUser.uid;
+            
+            const creationTime = currentUser.metadata.creationTime;
+            if (creationTime) {
+                const date = new Date(creationTime);
+                document.getElementById('registrationDate').textContent = 
+                    date.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' });
+            }
+
+            try {
+                const calendarSnapshot = await db.collection('users').doc(currentUser.uid).collection('calendar').get();
+                let activeDays = 0;
+                calendarSnapshot.forEach(doc => {
+                    if (doc.data().active) activeDays++;
+                });
+                document.getElementById('calendarDays').textContent = activeDays;
+
+                const driverSnapshot = await db.collection('users').doc(currentUser.uid).collection('todayDriver').get();
+                document.getElementById('trackedDays').textContent = driverSnapshot.size;
+
+            } catch (error) {
+                console.error('Ошибка загрузки статистики:', error);
+            }
+        }
+
+        function logout() {
+            auth.signOut().then(() => {
+                window.location.href = 'index.html';
+            });
+        }
+
+        function goToCalendar() {
+            window.location.href = 'calendar.html';
+        }
+
+        async function confirmDeleteAccount() {
+            const confirmed = confirm(
+                'Вы уверены?\n\n' +
+                'Это действие НЕОБРАТИМО!\n\n' +
+                'Нажмите OK для подтверждения.'
+            );
+            
+            if (!confirmed) return;
+
+            const doubleCheck = prompt(
+                'Для подтверждения введите ваш email:\n' + currentUser.email
+            );
+            
+            if (doubleCheck !== currentUser.email) {
+                alert('Email не совпадает. Удаление отменено.');
+                return;
+            }
+
+            await deleteAccount();
+        }
+
+        async function deleteAccount() {
+            try {
+                const userId = currentUser.uid;
+                
+                const calendarSnapshot = await db.collection('users').doc(userId).collection('calendar').get();
+                const batch = db.batch();
+                calendarSnapshot.forEach(doc => {
+                    batch.delete(doc.ref);
+                });
+                await batch.commit();
+
+                const driverSnapshot = await db.collection('users').doc(userId).collection('todayDriver').get();
+                const driverBatch = db.batch();
+                driverSnapshot.forEach(doc => {
+                    driverBatch.delete(doc.ref);
+                });
+                await driverBatch.commit();
+
+                await db.collection('users').doc(userId).delete();
+
+                await currentUser.delete();
+
+                alert('Аккаунт успешно удален.');
+                window.location.href = 'index.html';
+                
+            } catch (error) {
+                console.error('Ошибка удаления:', error);
+                
+                if (error.code === 'auth/requires-recent-login') {
+                    alert(
+                        'Для безопасности требуется повторный вход.\n\n' +
+                        'Пожалуйста, выйдите и войдите снова, затем попробуйте удалить аккаунт.'
+                    );
+                } else {
+                    alert('Произошла ошибка при удалении: ' + error.message);
+                }
+            }
+        }
+    </script>
+</body>
+</html>
