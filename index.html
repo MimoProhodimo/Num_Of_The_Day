@@ -49,18 +49,20 @@
         let currentUser = null;
 
         auth.onAuthStateChanged((user) => {
-            currentUser = user;
-            if (user) {
-                document.getElementById('loginBtn').style.display = 'none';
-                document.getElementById('logoutBtn').style.display = 'inline-block';
-                document.getElementById('userEmail').textContent = user.email;
-            } else {
-                document.getElementById('loginBtn').style.display = 'inline-block';
-                document.getElementById('logoutBtn').style.display = 'none';
-                document.getElementById('userEmail').textContent = '';
-            }
-            initApp();
-        });
+    currentUser = user;
+    if (user) {
+        document.getElementById('loginBtn').style.display = 'none';
+        document.getElementById('profileBtn').style.display = 'inline-block';  
+        document.getElementById('logoutBtn').style.display = 'inline-block';
+        document.getElementById('userEmail').textContent = user.email;
+    } else {
+        document.getElementById('loginBtn').style.display = 'inline-block';
+        document.getElementById('profileBtn').style.display = 'none';  
+        document.getElementById('logoutBtn').style.display = 'none';
+        document.getElementById('userEmail').textContent = '';
+    }
+    initApp();
+});
 
         function goToLogin() {
     window.location.href = 'login.html';
@@ -88,6 +90,7 @@ function logout() {
             document.getElementById('team').textContent = driver.Team || '';
             document.getElementById('country').textContent = driver.Country || '';
         }
+
 
         async function fetchNewDriver() {
             const nameEl = document.getElementById('name');
