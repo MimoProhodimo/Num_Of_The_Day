@@ -22,19 +22,6 @@ body {
             text-align: center;
             margin-bottom: 30px;
         }
-        .profile-avatar {
-            width: 80px;
-            height: 80px;
-            background-color: #52B69A;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto 15px;
-            font-size: 36px;
-            font-weight: bold;
-            color: #184E77;
-        }
         .profile-header h2 {
             color: #52B69A;
             margin: 0 0 10px 0;
