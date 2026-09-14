@@ -52,7 +52,6 @@
                 <input type="email" id="newEmail" placeholder="Введите новый email">
             </div>
             <button class="btn btn-primary" onclick="updateEmail()">Изменить email</button>
-            <button class="btn btn-secondary" onclick="sendVerification()" id="verifyBtn">Отправить подтверждение</button>
             <div id="emailMessage"></div>
         </div>
         <div class="section">
@@ -73,8 +72,6 @@
             <button class="btn btn-secondary" onclick="logout()">Выйти из аккаунта</button>
         </div>
         <div class="danger-zone">
-            <h3>️ Опасная зона</h3>
-            <p style="color: #99D98C; font-size: 14px; margin-bottom: 15px;">
                 Удаление аккаунта необратимо. Все ваши данные будут удалены.
             </p>
             <button class="btn btn-danger" onclick="confirmDeleteAccount()">Удалить аккаунт</button>
@@ -114,15 +111,6 @@
             document.getElementById('userEmail').textContent = currentUser.email;
             document.getElementById('userId').textContent = currentUser.uid;
             document.getElementById('userName').textContent = currentUser.displayName || 'Не указано';
-            
-            const badge = document.getElementById('emailBadge');
-            if (currentUser.emailVerified) {
-                badge.innerHTML = '<span class="verified-badge">Подтверждён</span>';
-                document.getElementById('verifyBtn').style.display = 'none';
-            } else {
-                badge.innerHTML = '<span class="unverified-badge">Не подтверждён</span>';
-            }
-
             const creationTime = currentUser.metadata.creationTime;
             const lastSignInTime = currentUser.metadata.lastSignInTime;
             
@@ -185,7 +173,7 @@
                 await currentUser.updateEmail(newEmail);
                 document.getElementById('userEmail').textContent = newEmail;
                 document.getElementById('newEmail').value = '';
-                showMessage('emailMessage', 'Email изменен. Проверьте почту для подтверждения.', 'success');
+                showMessage('emailMessage', 'Email изменен', 'success');
             } catch (error) {
                 if (error.code === 'auth/requires-recent-login') {
                     showMessage('emailMessage', 'Требуется повторный вход. Выйдите и войдите снова.', 'error');
@@ -194,16 +182,6 @@
                 }
             }
         }
-
-        async function sendVerification() {
-            try {
-                await currentUser.sendEmailVerification();
-                showMessage('emailMessage', 'Письмо отправлено на ' + currentUser.email, 'success');
-            } catch (error) {
-                showMessage('emailMessage', 'Ошибка: ' + error.message, 'error');
-            }
-        }
-
         async function updatePassword() {
             const newPassword = document.getElementById('newPassword').value;
             const confirmPassword = document.getElementById('confirmPassword').value;
