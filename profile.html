@@ -70,7 +70,6 @@
         </div>
 
         <div class="section" style="text-align: center;">
-            <button class="btn btn-primary" onclick="goToCalendar()">Календарь</button>
             <button class="btn btn-secondary" onclick="logout()">Выйти из аккаунта</button>
         </div>
 
@@ -227,8 +226,6 @@
         async function deleteAccount() {
             try {
                 const userId = currentUser.uid;
-                
-                // Удаляем данные из Firestore
                 const calendarSnapshot = await db.collection('users').doc(userId).collection('calendar').get();
                 const batch = db.batch();
                 calendarSnapshot.forEach(doc => batch.delete(doc.ref));
