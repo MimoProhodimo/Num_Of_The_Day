@@ -1,180 +1,185 @@
 body {
-            background-color: #121212;
-            color: #FFFFFF;
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            min-height: 100vh;
-        }
-        .profile-container {
-            max-width: 600px;
-            width: 100%;
-            background-color: #1E6091;
-            padding: 40px;
-            border-radius: 12px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
-            margin-top: 20px;
-        }
-        .profile-header {
-            text-align: center;
-            margin-bottom: 30px;
-        }
-        .profile-header h2 {
-            color: #52B69A;
-            margin: 0 0 10px 0;
-        }
-        .section {
-            background-color: #184E77;
-            padding: 20px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-        }
-        .section h3 {
-            color: #52B69A;
-            margin-top: 0;
-            margin-bottom: 15px;
-            font-size: 18px;
-        }
-        .info-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 10px 0;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
-        }
-        .info-row:last-child {
-            border-bottom: none;
-        }
-        .info-label {
-            color: #99D98C;
-            font-weight: bold;
-        }
-        .info-value {
-            color: #FFFFFF;
-            word-break: break-all;
-            text-align: right;
-        }
-        .verified-badge {
-            background-color: #52B69A;
-            color: #184E77;
-            padding: 2px 8px;
-            border-radius: 4px;
-            font-size: 12px;
-            font-weight: bold;
-            margin-left: 10px;
-        }
-        .unverified-badge {
-            background-color: #DC2626;
-            color: #FFFFFF;
-            padding: 2px 8px;
-            border-radius: 4px;
-            font-size: 12px;
-            font-weight: bold;
-            margin-left: 10px;
-        }
-        .form-group {
-            margin-bottom: 15px;
-        }
-        .form-group label {
-            display: block;
-            color: #99D98C;
-            margin-bottom: 5px;
-            font-size: 14px;
-        }
-        .form-group input {
-            width: 100%;
-            padding: 10px;
-            background-color: #1E6091;
-            border: 1px solid #52B69A;
-            border-radius: 6px;
-            color: #FFFFFF;
-            font-size: 14px;
-            box-sizing: border-box;
-        }
-        .form-group input::placeholder {
-            color: #99D98C;
-        }
-        .btn {
-            padding: 10px 20px;
-            border: none;
-            border-radius: 6px;
-            font-size: 14px;
-            cursor: pointer;
-            font-weight: bold;
-            margin-right: 10px;
-            margin-bottom: 10px;
-        }
-        .btn-primary {
-            background-color: #52B69A;
-            color: #184E77;
-        }
-        .btn-primary:hover {
-            background-color: #3a9a7f;
-        }
-        .btn-secondary {
-            background-color: transparent;
-            color: #FFFFFF;
-            border: 1px solid #FFFFFF;
-        }
-        .btn-secondary:hover {
-            background-color: rgba(255,255,255,0.1);
-        }
-        .btn-small {
-            padding: 6px 12px;
-            font-size: 12px;
-        }
-        .btn-danger {
-            background-color: #DC2626;
-            color: #FFFFFF;
-        }
-        .btn-danger:hover {
-            background-color: #b91c1c;
-        }
-        .stats-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
-            margin-bottom: 20px;
-        }
-        .stat-value {
-            font-size: 32px;
-            font-weight: bold;
-            color: #52B69A;
-            margin-bottom: 5px;
-        }
-        .stat-label {
-            color: #99D98C;
-            font-size: 14px;
-        }
-        .back-link {
-            display: inline-block;
-            margin-bottom: 20px;
-            color: #99D98C;
-            text-decoration: none;
-        }
-        .back-link:hover {
-            color: #52B69A;
-            text-decoration: underline;
-        }
-        .message {
-            padding: 10px;
-            border-radius: 6px;
-            margin-top: 10px;
-            font-size: 14px;
-        }
-        .message.success {
-            background-color: rgba(82, 182, 154, 0.2);
-            color: #52B69A;
-            border: 1px solid #52B69A;
-        }
-        .message.error {
-            background-color: rgba(220, 38, 38, 0.2);
-            color: #ff6b6b;
-            border: 1px solid #DC2626;
-        }
-        .hidden {
-            display: none;
-        }
+    background-color: #121212;
+    color: #FFFFFF;
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-height: 100vh;
+}
+
+.profile-container {
+    max-width: 500px;
+    width: 100%;
+    background-color: #1E6091;
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+    margin-top: 20px;
+}
+
+.profile-header {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.profile-header h2 {
+    color: #52B69A;
+    margin: 0 0 20px 0;
+}
+
+.section {
+    background-color: #184E77;
+    padding: 20px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+}
+
+.section h3 {
+    color: #52B69A;
+    margin-top: 0;
+    margin-bottom: 15px;
+    font-size: 18px;
+}
+
+.info-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+
+.info-row:last-child {
+    border-bottom: none;
+}
+
+.info-label {
+    color: #99D98C;
+    font-weight: bold;
+}
+
+.info-value {
+    color: #FFFFFF;
+    word-break: break-all;
+    text-align: right;
+}
+
+.form-group {
+    margin-bottom: 15px;
+}
+
+.form-group input {
+    width: 100%;
+    padding: 10px;
+    background-color: #1E6091;
+    border: 1px solid #52B69A;
+    border-radius: 6px;
+    color: #FFFFFF;
+    font-size: 14px;
+    box-sizing: border-box;
+}
+
+.form-group input::placeholder {
+    color: #99D98C;
+}
+
+.btn {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 6px;
+    font-size: 14px;
+    cursor: pointer;
+    font-weight: bold;
+    margin-right: 10px;
+    margin-bottom: 10px;
+    transition: background-color 0.2s;
+}
+
+.btn-primary {
+    background-color: #52B69A;
+    color: #184E77;
+}
+
+.btn-primary:hover {
+    background-color: #3a9a7f;
+}
+
+.btn-secondary {
+    background-color: transparent;
+    color: #FFFFFF;
+    border: 1px solid #FFFFFF;
+}
+
+.btn-secondary:hover {
+    background-color: rgba(255,255,255,0.1);
+}
+
+.btn-danger {
+    background-color: #DC2626;
+    color: #FFFFFF;
+}
+
+.btn-danger:hover {
+    background-color: #b91c1c;
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: 1fr; /* Оставил одну колонку, так как статистика теперь одна */
+    gap: 15px;
+}
+
+.stat-card {
+    background-color: #1E6091;
+    padding: 20px;
+    border-radius: 8px;
+    text-align: center;
+}
+
+.stat-value {
+    font-size: 32px;
+    font-weight: bold;
+    color: #52B69A;
+    margin-bottom: 5px;
+}
+
+.stat-label {
+    color: #99D98C;
+    font-size: 14px;
+}
+
+.back-link {
+    display: inline-block;
+    margin-bottom: 20px;
+    color: #99D98C;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+.back-link:hover {
+    color: #52B69A;
+    text-decoration: underline;
+}
+
+.message {
+    padding: 10px;
+    border-radius: 6px;
+    margin-top: 10px;
+    font-size: 14px;
+    text-align: center;
+}
+
+.message.success {
+    background-color: rgba(82, 182, 154, 0.2);
+    color: #52B69A;
+    border: 1px solid #52B69A;
+}
+
+.message.error {
+    background-color: rgba(220, 38, 38, 0.2);
+    color: #ff6b6b;
+    border: 1px solid #DC2626;
+}
