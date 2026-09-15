@@ -49,16 +49,12 @@
     currentUser = user;
     if (user) {
         document.getElementById('loginBtn').style.display = 'none';
-        document.getElementById('profileBtn').style.display = 'inline-block';  
-        document.getElementById('logoutBtn').style.display = 'inline-block';
-        document.getElementById('userEmail').textContent = user.email;
+        document.getElementById('profileBtn').style.display = 'inline-block';
     } else {
         document.getElementById('loginBtn').style.display = 'inline-block';
-        document.getElementById('profileBtn').style.display = 'none';  
-        document.getElementById('logoutBtn').style.display = 'none';
-        document.getElementById('userEmail').textContent = '';
+        document.getElementById('profileBtn').style.display = 'none';
     }
-    initApp();
+    initApp(); 
 });
 
         function goToLogin() {
