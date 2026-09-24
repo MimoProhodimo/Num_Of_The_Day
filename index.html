@@ -29,7 +29,7 @@
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
     
-    <script>
+        <script>
         const firebaseConfig = {
             apiKey: "AIzaSyAWQTRrHHI0u0zuUrTj5vP0F-T0Dbd8kN8",
             authDomain: "num-of-the-day.firebaseapp.com",
@@ -46,30 +46,30 @@
         let currentUser = null;
 
         auth.onAuthStateChanged((user) => {
-    currentUser = user;
-    if (user) {
-        document.getElementById('loginBtn').style.display = 'none';
-        document.getElementById('profileBtn').style.display = 'inline-block';
-    } else {
-        document.getElementById('loginBtn').style.display = 'inline-block';
-        document.getElementById('profileBtn').style.display = 'none';
-    }
-    initApp(); 
-});
+            currentUser = user;
+            if (user) {
+                document.getElementById('loginBtn').style.display = 'none';
+                document.getElementById('profileBtn').style.display = 'inline-block';
+            } else {
+                document.getElementById('loginBtn').style.display = 'inline-block';
+                document.getElementById('profileBtn').style.display = 'none';
+            }
+            initApp(); 
+        });
 
         function goToLogin() {
-    window.location.href = 'login.html';
-}
+            window.location.href = 'login.html';
+        }
 
-function goToProfile() {
-    window.location.href = 'profile.html';
-}
+        function goToProfile() {
+            window.location.href = 'profile.html';
+        }
 
-function logout() {
-    auth.signOut().then(() => {
-        location.reload();
-    });
-}
+        function logout() {
+            auth.signOut().then(() => {
+                location.reload();
+            });
+        }
 
         function getCurrentDate() {
             return new Date().toISOString().split('T')[0];
@@ -83,7 +83,6 @@ function logout() {
             document.getElementById('team').textContent = driver.Team || '';
             document.getElementById('country').textContent = driver.Country || '';
         }
-
 
         async function fetchNewDriver() {
             const nameEl = document.getElementById('name');
@@ -109,14 +108,17 @@ function logout() {
                 
                 if (currentUser) {
                     await db.collection('users').doc(currentUser.uid).collection('todayDriver').doc(today).set({
-                        driver: driver,
+                        Num: driver.Num || driver.num,
+                        Name: driver.Name || driver.name,
+                        LName: driver.LName || driver.lastname,
+                        Team: driver.Team || driver.team,
+                        Country: driver.Country || driver.country,
                         timestamp: firebase.firestore.FieldValue.serverTimestamp()
                     });
                 } else {
                     localStorage.setItem('driver_data', JSON.stringify(driver));
                     localStorage.setItem('driver_date', today);
                 }
-                
                 displayDriver(driver);
             }
         }
@@ -124,29 +126,45 @@ function logout() {
         async function initApp() {
             const today = getCurrentDate();
             
+            // 1. Если пользователь вошел, пробуем ПРОЧИТАТЬ (.get) из Firestore
             if (currentUser) {
                 try {
                     const doc = await db.collection('users').doc(currentUser.uid).collection('todayDriver').doc(today).get();
                     if (doc.exists) {
-                        displayDriver(doc.data().driver);
-                        return;
+                        const data = doc.data();
+                        // Собираем объект в том виде, который ожидает displayDriver
+                        const driver = {
+                            Num: data.Num,
+                            Name: data.Name,
+                            LName: data.LName,
+                            Team: data.Team,
+                            Country: data.Country
+                        };
+                        displayDriver(driver);
+                        return; 
                     }
                 } catch (error) {
                     console.error('Ошибка загрузки из Firestore:', error);
                 }
             }
             
+            // 2. Если не вошел, или в базе нет данных на сегодня:
             const savedDriverJSON = localStorage.getItem('driver_data');
             const savedDate = localStorage.getItem('driver_date');
             
             if (savedDriverJSON && savedDate === today) {
                 displayDriver(JSON.parse(savedDriverJSON));
             } else {
+                // Данных нет нигде, генерируем нового
                 const driver = await fetchNewDriver();
                 if (driver) {
                     if (currentUser) {
                         await db.collection('users').doc(currentUser.uid).collection('todayDriver').doc(today).set({
-                            driver: driver,
+                            Num: driver.Num || driver.num,
+                            Name: driver.Name || driver.name,
+                            LName: driver.LName || driver.lastname,
+                            Team: driver.Team || driver.team,
+                            Country: driver.Country || driver.country,
                             timestamp: firebase.firestore.FieldValue.serverTimestamp()
                         });
                     } else {
@@ -157,9 +175,6 @@ function logout() {
                 }
             }
         }
-
-        window.onload = () => {
-        };
     </script>
 </body>
 </html>
