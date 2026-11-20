@@ -50,6 +50,11 @@
             if (user) {
                 document.getElementById('loginBtn').style.display = 'none';
                 document.getElementById('profileBtn').style.display = 'inline-block';
+                db.collection('users').doc(user.uid).set({
+                    email:user.email,
+                    displayName: =user.displayName ||",
+                        lastSeen:firebase.firestore.FieldValue.serverTimestamp()
+            }, {merge: true});
             } else {
                 document.getElementById('loginBtn').style.display = 'inline-block';
                 document.getElementById('profileBtn').style.display = 'none';
