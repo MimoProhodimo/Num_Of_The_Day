@@ -46,21 +46,24 @@
         let currentUser = null;
 
         auth.onAuthStateChanged((user) => {
-            currentUser = user;
-            if (user) {
-                document.getElementById('loginBtn').style.display = 'none';
-                document.getElementById('profileBtn').style.display = 'inline-block';
-                db.collection('users').doc(user.uid).set({
-                    email:user.email,
-                    displayName: =user.displayName ||",
-                        lastSeen:firebase.firestore.FieldValue.serverTimestamp()
-            }, {merge: true});
-            } else {
-                document.getElementById('loginBtn').style.display = 'inline-block';
-                document.getElementById('profileBtn').style.display = 'none';
-            }
-            initApp(); 
-        });
+    currentUser = user;
+    if (user) {
+        document.getElementById('loginBtn').style.display = 'none';
+        document.getElementById('profileBtn').style.display = 'inline-block';
+        document.getElementById('chatsBtn').style.display = 'inline-block';
+        
+        db.collection('users').doc(user.uid).set({
+            email: user.email,
+            displayName: user.displayName || '',
+            lastSeen: firebase.firestore.FieldValue.serverTimestamp()
+        }, { merge: true });
+    } else {
+        document.getElementById('loginBtn').style.display = 'inline-block';
+        document.getElementById('profileBtn').style.display = 'none';
+        document.getElementById('chatsBtn').style.display = 'none';
+    }
+    initApp(); 
+});
 
         function goToLogin() {
             window.location.href = 'login.html';
@@ -75,6 +78,10 @@
                 location.reload();
             });
         }
+
+            function goToChats() {
+    window.location.href = 'chat.html';
+}
 
         function getCurrentDate() {
             return new Date().toISOString().split('T')[0];
