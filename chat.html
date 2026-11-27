@@ -1,31 +1,55 @@
 <!DOCTYPE html>
 <html lang="ru">
-  <head>
-    <meta name="viewport" content="width=divie-width, inital-scale=1.0">
-    <title>Чат</title>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Чат - Num of the Day</title>
     <link rel="stylesheet" href="main.css">
-    <link rel="shortcut" href="logo.jpg"/>
-    <link rel="stylesheet" href="chat.css">
-  </head>
-  <body>
-    <a href="index.html" class="back-link"> На главную </a>
+    <link rel="shortcut icon" href="logo.jpg"/>
+</head>
+<body>
 
-    <div class="chat-container">
-      <h2>Чат</h2>
-      <div class="start-chat" id="startChatBlock">
-            <input type="email" id="partnerEmail" placeholder="Email собеседника">
-            <button class="btn btn-primary" onclick="startChat()" style="width: 100%;">Начать чат</button>
-            <div id="startChatError" class="error-msg"></div>
-        </div>
-        
-        <!-- Блок переписки (скрыт по умолчанию) -->
-        <div id="chatBlock" style="display: none;">
-            <div class="chat-header" id="chatHeader">Чат с...</div>
-            <div class="messages-box" id="messagesBox"></div>
-            <div class="input-area">
-                <input type="text" id="messageInput" placeholder="Напишите сообщение..." onkeypress="handleEnter(event)">
-                <button class="btn btn-primary" onclick="sendMessage()">Отправить</button>
+    <div class="top-bar">
+        <a href="index.html" class="back-link">← На главную</a>
+        <span>Чат</span>
+    </div>
+
+    <div class="chat-layout">
+        <div class="chat-sidebar">
+            <div class="sidebar-header">
+                <span>Диалоги</span>
+                <button class="new-chat-btn" onclick="showNewChatForm()">+ Новый</button>
             </div>
+            <div class="chat-list" id="chatList">
+                <div style="padding: 20px; text-align: center; color: #99D98C;">Загрузка...</div>
+            </div>
+        </div>
+
+        <div class="chat-main">
+              <div id="emptyState" class="empty-state">
+                <h3>Выберите чат слева</h3>
+                <p>или начните новый диалог</p>
+            </div>
+
+            <div id="newChatForm" class="empty-state" style="display: none;">
+                <div class="start-chat-form" style="width: 80%; max-width: 400px;">
+                    <h3 style="margin-top: 0; color: #52B69A;">Новый чат</h3>
+                    <input type="email" id="partnerEmail" placeholder="Email собеседника">
+                    <button class="btn-primary" style="width: 100%;" onclick="startChat()">Найти и начать</button>
+                    <div id="startChatError" class="error-msg"></div>
+                    <button onclick="hideNewChatForm()" style="background: none; border: none; color: #99D98C; margin-top: 10px; cursor: pointer; text-decoration: underline;">Отмена</button>
+                </div>
+            </div>
+
+            <div id="activeChat" style="display: none; flex-direction: column; height: 100%;">
+                <div class="chat-header" id="chatHeader">Чат с...</div>
+                <div class="messages-box" id="messagesBox"></div>
+                <div class="input-area">
+                    <input type="text" id="messageInput" placeholder="Напишите сообщение..." onkeypress="handleEnter(event)">
+                    <button class="btn-primary" onclick="sendMessage()">Отправить</button>
+                </div>
+            </div>
+
         </div>
     </div>
 
@@ -52,60 +76,108 @@
         let partnerUid = null;
         let unsubscribeMessages = null;
 
-        // Проверяем вход
         auth.onAuthStateChanged((user) => {
             if (!user) {
                 window.location.href = 'login.html';
                 return;
             }
             currentUser = user;
-            
-            // Сохраняем email в Firestore
             db.collection('users').doc(user.uid).set({
                 email: user.email,
                 displayName: user.displayName || '',
                 lastSeen: firebase.firestore.FieldValue.serverTimestamp()
             }, { merge: true });
+            
+            loadChatList(); 
         });
 
-        // Поиск пользователя по email и создание чата
+        function showNewChatForm() {
+            document.getElementById('emptyState').style.display = 'none';
+            document.getElementById('activeChat').style.display = 'none';
+            document.getElementById('newChatForm').style.display = 'flex';
+            document.getElementById('partnerEmail').value = '';
+            document.getElementById('startChatError').textContent = '';
+        }
+
+        function hideNewChatForm() {
+            document.getElementById('newChatForm').style.display = 'none';
+            document.getElementById('emptyState').style.display = 'flex';
+        }
+
+        function showActiveChat(partnerName) {
+            document.getElementById('emptyState').style.display = 'none';
+            document.getElementById('newChatForm').style.display = 'none';
+            document.getElementById('activeChat').style.display = 'flex';
+            document.getElementById('chatHeader').textContent = `Чат с ${partnerName}`;
+        }
+
+        async function loadChatList() {
+            const listEl = document.getElementById('chatList');
+            try {
+                const snapshot = await db.collection('chats')
+                    .where('participants', 'array-contains', currentUser.uid)
+                    .orderBy('lastMessageTime', 'desc')
+                    .get();
+
+                if (snapshot.empty) {
+                    listEl.innerHTML = '<div style="padding: 20px; text-align: center; color: #99D98C;">Нет активных чатов</div>';
+                    return;
+                }
+
+                listEl.innerHTML = '';
+                for (const doc of snapshot.docs) {
+                    const chat = doc.data();
+                    const chatId = doc.id;
+                    const pUid = chat.participants.find(uid => uid !== currentUser.uid);
+                    
+                    const userDoc = await db.collection('users').doc(pUid).get();
+                    const pName = userDoc.data()?.displayName || userDoc.data()?.email || 'Неизвестно';
+
+                    const time = chat.lastMessageTime ? chat.lastMessageTime.toDate().toLocaleTimeString('ru-RU', {hour: '2-digit', minute:'2-digit'}) : '';
+
+                    const item = document.createElement('div');
+                    item.className = 'chat-item';
+                    if (currentChatId === chatId) item.classList.add('active');
+                    
+                    item.innerHTML = `
+                        <div class="chat-item-name">${pName}</div>
+                        <div class="chat-item-preview">${chat.lastMessage || 'Нет сообщений'} • ${time}</div>
+                    `;
+                    item.onclick = () => openChat(chatId, pUid, pName);
+                    listEl.appendChild(item);
+                }
+            } catch (e) {
+                console.error(e);
+                // Если индекса нет, Firebase даст ссылку в консоль. Создай его по ссылке.
+                listEl.innerHTML = '<div style="padding: 20px; color: #ff6b6b;">Ошибка. Проверь консоль (F12)</div>';
+            }
+        }
+
         async function startChat() {
             const email = document.getElementById('partnerEmail').value.trim();
             const errorEl = document.getElementById('startChatError');
             errorEl.textContent = '';
 
-            if (!email) {
-                errorEl.textContent = 'Введите email';
-                return;
-            }
-            if (email === currentUser.email) {
-                errorEl.textContent = 'Нельзя написать самому себе';
+            if (!email || email === currentUser.email) {
+                errorEl.textContent = 'Введите корректный email (не свой)';
                 return;
             }
 
             try {
-                // Ищем пользователя по email
-                const snapshot = await db.collection('users')
-                    .where('email', '==', email)
-                    .limit(1)
-                    .get();
-
+                const snapshot = await db.collection('users').where('email', '==', email).limit(1).get();
                 if (snapshot.empty) {
-                    errorEl.textContent = 'Пользователь с таким email не найден';
+                    errorEl.textContent = 'Пользователь не найден';
                     return;
                 }
 
-                const partnerDoc = snapshot.docs[0];
-                partnerUid = partnerDoc.id;
-                const partnerName = partnerDoc.data().displayName || email;
+                const pDoc = snapshot.docs[0];
+                partnerUid = pDoc.id;
+                const pName = pDoc.data().displayName || email;
+                currentChatId = getChatId(currentUser.uid, partnerUid);
 
-                // Проверяем, есть ли уже чат между нами
-                const chatId = getChatId(currentUser.uid, partnerUid);
-                const chatDoc = await db.collection('chats').doc(chatId).get();
-
+                const chatDoc = await db.collection('chats').doc(currentChatId).get();
                 if (!chatDoc.exists) {
-                    // Создаем новый чат
-                    await db.collection('chats').doc(chatId).set({
+                    await db.collection('chats').doc(currentChatId).set({
                         participants: [currentUser.uid, partnerUid],
                         lastMessage: '',
                         lastMessageTime: firebase.firestore.FieldValue.serverTimestamp(),
@@ -113,109 +185,82 @@
                     });
                 }
 
-                // Открываем чат
-                currentChatId = chatId;
-                document.getElementById('startChatBlock').style.display = 'none';
-                document.getElementById('chatBlock').style.display = 'block';
-                document.getElementById('chatHeader').textContent = `Чат с ${partnerName}`;
-                
+                hideNewChatForm();
+                showActiveChat(pName);
                 loadMessages();
+                loadChatList(); 
             } catch (error) {
-                console.error(error);
                 errorEl.textContent = 'Ошибка: ' + error.message;
             }
         }
 
-        // Генерируем уникальный ID чата (всегда одинаковый для пары пользователей)
+        function openChat(chatId, pUid, pName) {
+            currentChatId = chatId;
+            partnerUid = pUid;
+            
+            document.querySelectorAll('.chat-item').forEach(el => el.classList.remove('active'));            
+            showActiveChat(pName);
+            loadMessages();
+        }
+
         function getChatId(uid1, uid2) {
             return [uid1, uid2].sort().join('_');
         }
 
-        // Загрузка сообщений в реальном времени
         function loadMessages() {
             if (unsubscribeMessages) unsubscribeMessages();
-
-            const messagesBox = document.getElementById('messagesBox');
-            messagesBox.innerHTML = '<div style="text-align: center; color: #99D98C;">Загрузка...</div>';
+            const box = document.getElementById('messagesBox');
+            box.innerHTML = '<div style="text-align: center; color: #99D98C;">Загрузка...</div>';
 
             unsubscribeMessages = db.collection('messages')
                 .doc(currentChatId)
                 .collection('items')
                 .orderBy('timestamp', 'asc')
                 .onSnapshot((snapshot) => {
-                    messagesBox.innerHTML = '';
-                    
+                    box.innerHTML = '';
                     if (snapshot.empty) {
-                        messagesBox.innerHTML = '<div style="text-align: center; color: #99D98C;">Начните общение!</div>';
+                        box.innerHTML = '<div style="text-align: center; color: #99D98C; margin-top: 20px;">Начните общение!</div>';
                         return;
                     }
 
                     snapshot.forEach(doc => {
                         const msg = doc.data();
                         const isMine = msg.senderId === currentUser.uid;
+                        const time = msg.timestamp?.toDate() ? msg.timestamp.toDate().toLocaleTimeString('ru-RU', {hour: '2-digit', minute:'2-digit'}) : '';
                         
-                        const msgEl = document.createElement('div');
-                        msgEl.className = `message ${isMine ? 'mine' : 'theirs'}`;
-                        
-                        const time = msg.timestamp?.toDate() 
-                            ? msg.timestamp.toDate().toLocaleTimeString('ru-RU', {hour: '2-digit', minute: '2-digit'}) 
-                            : '';
-                        
-                        msgEl.innerHTML = `
-                            <div>${escapeHtml(msg.text)}</div>
-                            <div class="message-time">${time}</div>
-                        `;
-                        messagesBox.appendChild(msgEl);
+                        const el = document.createElement('div');
+                        el.className = `message ${isMine ? 'mine' : 'theirs'}`;
+                        el.innerHTML = `<div>${escapeHtml(msg.text)}</div><div class="message-time">${time}</div>`;
+                        box.appendChild(el);
                     });
-
-                    // Прокрутка вниз
-                    messagesBox.scrollTop = messagesBox.scrollHeight;
-                }, (error) => {
-                    console.error(error);
-                    messagesBox.innerHTML = '<div style="text-align: center; color: #ff6b6b;">Ошибка загрузки</div>';
+                    box.scrollTop = box.scrollHeight;
                 });
         }
 
-        // Отправка сообщения
         async function sendMessage() {
             const input = document.getElementById('messageInput');
             const text = input.value.trim();
-            if (!text) return;
-
+            if (!text || !currentChatId) return;
             input.value = '';
 
             try {
-                // Добавляем сообщение
-                await db.collection('messages')
-                    .doc(currentChatId)
-                    .collection('items')
-                    .add({
-                        text: text,
-                        senderId: currentUser.uid,
-                        timestamp: firebase.firestore.FieldValue.serverTimestamp()
-                    });
-
-                // Обновляем lastMessage в chats
+                await db.collection('messages').doc(currentChatId).collection('items').add({
+                    text: text,
+                    senderId: currentUser.uid,
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                });
                 await db.collection('chats').doc(currentChatId).update({
                     lastMessage: text,
                     lastMessageTime: firebase.firestore.FieldValue.serverTimestamp(),
                     lastMessageBy: currentUser.uid
                 });
-            } catch (error) {
-                console.error(error);
-                alert('Ошибка отправки: ' + error.message);
+            } catch (e) {
+                alert('Ошибка отправки: ' + e.message);
             }
         }
 
-        function handleEnter(event) {
-            if (event.key === 'Enter') sendMessage();
-        }
-
-        function escapeHtml(text) {
-            const div = document.createElement('div');
-            div.textContent = text;
-            return div.innerHTML;
-        }
+        function handleEnter(e) { if (e.key === 'Enter') sendMessage(); }
+        function escapeHtml(text) { const div = document.createElement('div'); div.textContent = text; return div.innerHTML; }
     </script>
 </body>
 </html>
